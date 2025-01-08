@@ -22,8 +22,11 @@ logging.basicConfig(
 # GitHub API configuration
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
 PLUGIN_LIST_FILE = "plugins.json"
-OUTPUT_DIR = "output/plugins"
-Path(OUTPUT_DIR).mkdir(parents=True, exist_ok=True)
+OUTPUT_DIR = "output/plugin"
+COMPARE_IGNORE = ["last_fetched", "etag_release", "etag_repository"]
+
+# Create output directories
+Path(f"{OUTPUT_DIR}/diff").mkdir(parents=True, exist_ok=True)
 
 
 class RotorHazardPlugin:
@@ -242,6 +245,22 @@ class MetadataGenerator:
             logging.warning("Plugin list file not found. Using an empty list.")
             return []
 
+    def save_filtered_json(self, filepath: str, data: dict) -> None:
+        """Save data to a JSON file with filtered keys.
+
+        Args:
+        ----
+            filepath: Path to the output JSON file.
+            data: Data to be saved.
+
+        """
+        filtered_data = {
+            key: {k: v for k, v in value.items() if k not in COMPARE_IGNORE}
+            for key, value in data.items()
+        }
+        with Path.open(filepath, "w", encoding="utf-8") as f:
+            json.dump(filtered_data, f, indent=2)
+
     def save_json(self, filepath: str, data: dict) -> None:
         """Save data to a JSON file.
 
@@ -252,7 +271,7 @@ class MetadataGenerator:
 
         """
         with Path.open(filepath, "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=4)
+            json.dump(data, f, indent=2)
 
     async def summarize_results(
         self,
@@ -281,7 +300,7 @@ class MetadataGenerator:
             "execution_time_seconds": round(elapsed_time, 2),
         }
         logging.info("Metadata generation summary:")
-        logging.info(json.dumps(summary, indent=4))
+        logging.info(json.dumps(summary, indent=2))
 
     async def generate_metadata(self) -> None:
         """Generate metadata for all repositories."""
@@ -307,6 +326,7 @@ class MetadataGenerator:
                     skipped_plugins += 1
 
         # Save generated metadata to local JSON file
+        self.save_filtered_json(f"{self.output_dir}/diff/after.json", plugin_data)
         self.save_json(f"{self.output_dir}/data.json", plugin_data)
         self.save_json(f"{self.output_dir}/repositories.json", valid_repositories)
 
