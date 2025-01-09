@@ -1,14 +1,10 @@
 ---
-name: Generate RH Data
+name: Generate RHCS Data
 
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 3 * * *"
-  push:
-    branches:
-      - main
-      - klaas-2025-002
+    - cron: "0 */2 * * *" # Every 2 hours
 
 env:
   DEFAULT_PYTHON: "3.13"
@@ -112,7 +108,7 @@ jobs:
             .write();
 
   publish:
-    name: Publish plugin data
+    name: Publish RHCS data
     needs: summarize
     runs-on: ubuntu-latest
     steps:
