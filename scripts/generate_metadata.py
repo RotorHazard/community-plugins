@@ -70,7 +70,7 @@ class RotorHazardPlugin:
             )
             if not custom_plugins_folder:
                 logging.error(
-                    f"::error::The `custom_plugins/` folder is missing in {self.repo}."
+                    f"::error:: The `custom_plugins/` folder is missing in {self.repo}."
                 )
                 return None
 
@@ -83,7 +83,7 @@ class RotorHazardPlugin:
             # Ensure there is exactly one domain folder
             if len(subfolders) != 1:
                 logging.error(
-                    "::error::Expected exactly one domain folder inside "
+                    "::error:: Expected exactly one domain folder inside "
                     f"`custom_plugins/` for '{self.repo}', but found {len(subfolders)}."
                 )
                 return None
@@ -127,18 +127,18 @@ class RotorHazardPlugin:
             # Compare the domain in the manifest with the folder name
             if manifest_domain != self.domain:
                 logging.error(
-                    f"::error::Domain mismatch for {self.repo}: Folder "
+                    f"::error:: Domain mismatch for {self.repo}: Folder "
                     f"'{self.domain}' vs Manifest '{manifest_domain}'."
                 )
                 return False
         except GitHubNotFoundException:
             logging.exception(
-                "::error::Manifest file not found for "
+                "::error:: Manifest file not found for "
                 f"'{self.repo}' at '{manifest_path}'."
             )
         except json.JSONDecodeError:
             logging.exception(
-                f"::error::Manifest file for '{self.repo}' "
+                f"::error:: Manifest file for '{self.repo}' "
                 f"at '{manifest_path}' contains invalid JSON."
             )
         except GitHubException:

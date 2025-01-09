@@ -23,7 +23,7 @@ jobs:
     steps:
       - name: ⤵️ Check out code
         uses: actions/checkout@v4.2.2
-      - name: install AWS CLI
+      - name: 🏗 install AWS CLI and JQ
         run: sudo apt-get update && sudo apt-get install -y awscli jq
       - name: 🏗 Set up UV
         uses: astral-sh/setup-uv@v4.2.0
@@ -32,8 +32,8 @@ jobs:
           python-version: ${{ env.DEFAULT_PYTHON }}
           enable-cache: true
       - name: 🏗 Install project dependencies
-        run: uv sync
-      - name: Download data from Cloudflare R2
+        run: uv sync --no-group dev
+      - name: ⤵️ Download data from Cloudflare R2
         run: |
           mkdir -p ./output/plugin/diff
           aws s3 cp s3://rotorhazard-plugins/plugin/diff/after.json ./output/plugin/diff/before.json --endpoint-url=${{ secrets.CF_R2_ENDPOINT }} || echo "{}" > ./output/plugin/diff/before.json
@@ -52,6 +52,7 @@ jobs:
         run: |
           mv ./output/plugin/diff/ ./output/diff/
           diff -U 8 output/diff/before.json output/diff/after.json > output/diff/plugin.diff || true
+          cat output/diff/plugin.diff
       - name: Upload metadata artifacts
         uses: actions/upload-artifact@v4.5.0
         with:
