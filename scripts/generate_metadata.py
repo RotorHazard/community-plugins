@@ -298,8 +298,8 @@ class MetadataGenerator:
             "skipped_plugins": skipped,
             "execution_time_seconds": round(elapsed_time, 2),
         }
-        logging.info("Metadata generation summary:")
-        logging.info(json.dumps(summary, indent=2))
+        summary_path = f"{self.output_dir}/summary.json"
+        self.save_json(summary_path, summary)
 
     async def generate_metadata(self) -> None:
         """Generate metadata for all repositories."""

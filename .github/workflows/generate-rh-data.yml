@@ -23,16 +23,20 @@ jobs:
     steps:
       - name: ⤵️ Check out code
         uses: actions/checkout@v4.2.2
+
       - name: 🏗 install AWS CLI and JQ
         run: sudo apt-get update && sudo apt-get install -y awscli jq
+
       - name: 🏗 Set up UV
         uses: astral-sh/setup-uv@v4.2.0
         with:
           version: "latest"
           python-version: ${{ env.DEFAULT_PYTHON }}
           enable-cache: true
+
       - name: 🏗 Install project dependencies
         run: uv sync --no-group dev
+
       - name: ⤵️ Download data from Cloudflare R2
         run: |
           mkdir -p ./output/plugin/diff
@@ -40,19 +44,35 @@ jobs:
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.CF_R2_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.CF_R2_SECRET_ACCESS_KEY }}
+
       - name: 🏗 Generate metadata
-        run: uv run python scripts/generate_metadata.py
+        run: |
+          uv run python scripts/generate_metadata.py
+          mv ./output/plugin/diff/ ./output/diff/
+          mv ./output/plugin/summary.json ./output/summary.json
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Validate output with JQ
         run: |
           jq -c . output/plugin/data.json
           jq -c . output/plugin/repositories.json
+
       - name: Generate diff
         run: |
-          mv ./output/plugin/diff/ ./output/diff/
           diff -U 8 output/diff/before.json output/diff/after.json > output/diff/plugin.diff || true
           cat output/diff/plugin.diff
+
+      - name: Upload diff
+        uses: actions/github-script@v7.0.1
+        with:
+          script: |
+            const fs = require('fs');
+            const diffContents = fs.readFileSync(`output/diff/plugin.diff`);
+
+            core.summary.addDetails(`plugin.diff contents`, `\`\`\`\n${diffContents}\n\`\`\``);
+            core.summary.write();
+
       - name: Upload metadata artifacts
         uses: actions/upload-artifact@v4.5.0
         with:
@@ -60,5 +80,34 @@ jobs:
           path: |
             output/plugin
             output/diff
+            output/summary.json
           if-no-files-found: error
           retention-days: 7
+
+  summarize:
+    name: Summarize changes
+    needs: generate-metadata
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4.1.8
+        with:
+          path: output
+
+      - name: Display total summary
+        uses: actions/github-script@v7.0.1
+        with:
+          script: |
+            const fs = require('fs');
+            const summaryData = JSON.parse(fs.readFileSync('output/summary.json', 'utf-8'));
+
+            core.summary
+            .addHeading('Metadata Generation Summary')
+            .addTable([
+              [{data: 'Metric', header: true}, {data: 'Value', header: true}],
+              ['Total Plugins', `${summaryData.total_plugins}`],
+              ['Valid Plugins', `${summaryData.valid_plugins}`],
+              ['Skipped Plugins', `${summaryData.skipped_plugins}`],
+              ['Execution Time (s)', `${summaryData.execution_time_seconds}`],
+            ])
+            .write();
