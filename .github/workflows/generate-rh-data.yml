@@ -70,7 +70,7 @@ jobs:
             const fs = require('fs');
             const diffContents = fs.readFileSync('output/diff/plugin.diff');
 
-            core.summary.addDetails("plugin.diff contents', `\n\n\`\`\`diff\n${diffContents}\`\`\`\n\n`);
+            core.summary.addDetails('plugin.diff contents', `\n\n\`\`\`diff\n${diffContents}\`\`\`\n\n`);
             core.summary.write();
 
       - name: Upload metadata artifacts
