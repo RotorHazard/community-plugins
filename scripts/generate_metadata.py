@@ -70,7 +70,7 @@ class RotorHazardPlugin:
             )
             if not custom_plugins_folder:
                 logging.error(
-                    f"::error:: The `custom_plugins/` folder is missing in {self.repo}."
+                    f"The `custom_plugins/` folder is missing in {self.repo}."
                 )
                 return None
 
@@ -83,8 +83,8 @@ class RotorHazardPlugin:
             # Ensure there is exactly one domain folder
             if len(subfolders) != 1:
                 logging.error(
-                    "::error:: Expected exactly one domain folder inside "
-                    f"`custom_plugins/` for '{self.repo}', but found {len(subfolders)}."
+                    "Expected exactly one domain folder inside `custom_plugins/` "
+                    f"for '{self.repo}', but found {len(subfolders)}."
                 )
                 return None
 
@@ -92,7 +92,7 @@ class RotorHazardPlugin:
             self.domain = subfolders[0].name
             logging.info(f"Found domain {self.domain} for {self.repo}")
         except GitHubNotFoundException:
-            logging.warning(f"::error::Repository '{self.repo}' not found.")
+            logging.warning(f"Repository '{self.repo}' not found.")
         except GitHubException:
             logging.exception(f"Error fetching plugin domain for {self.repo}")
         else:
@@ -127,19 +127,18 @@ class RotorHazardPlugin:
             # Compare the domain in the manifest with the folder name
             if manifest_domain != self.domain:
                 logging.error(
-                    f"::error:: Domain mismatch for {self.repo}: Folder "
+                    f"Domain mismatch for {self.repo}: Folder "
                     f"'{self.domain}' vs Manifest '{manifest_domain}'."
                 )
                 return False
         except GitHubNotFoundException:
             logging.exception(
-                "::error:: Manifest file not found for "
-                f"'{self.repo}' at '{manifest_path}'."
+                f"Manifest file not found for '{self.repo}' at '{manifest_path}'."
             )
         except json.JSONDecodeError:
             logging.exception(
-                f"::error:: Manifest file for '{self.repo}' "
-                f"at '{manifest_path}' contains invalid JSON."
+                f"Manifest file for '{self.repo}' at "
+                f"'{manifest_path}' contains invalid JSON."
             )
         except GitHubException:
             logging.exception(f"Error fetching manifest for '{self.repo}'")
@@ -213,7 +212,7 @@ class RotorHazardPlugin:
                 "last_fetched": datetime.now(UTC).isoformat(),
             }
         except GitHubNotFoundException:
-            logging.warning(f"::warning::Repository '{self.repo}' not found.")
+            logging.warning(f"Repository '{self.repo}' not found.")
         except GitHubException:
             logging.exception(f"Error fetching repository metadata for '{self.repo}'")
         else:
