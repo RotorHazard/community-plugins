@@ -13,9 +13,11 @@ from time import perf_counter
 from aiogithubapi import GitHubAPI, GitHubException, GitHubNotFoundException
 
 # Loggin setup
+logging.addLevelName(logging.ERROR, "::error::")
+logging.addLevelName(logging.WARNING, "::warning::")
 logging.basicConfig(
     level=logging.INFO,
-    format="%(asctime)s: %(levelname)s - %(message)s",
+    format=" %(levelname)s %(message)s",
     handlers=[logging.StreamHandler(sys.stdout)],
 )
 

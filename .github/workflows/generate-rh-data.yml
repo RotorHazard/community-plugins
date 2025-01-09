@@ -92,11 +92,7 @@ jobs:
       - name: Download artifacts
         uses: actions/download-artifact@v4.1.8
         with:
-          name: plugin
           path: output
-
-      - name: LS output
-        run: ls -al
 
       - name: Display total summary
         uses: actions/github-script@v7.0.1
@@ -105,9 +101,7 @@ jobs:
             const fs = require('fs');
             const summaryData = JSON.parse(fs.readFileSync('output/summary.json', 'utf-8'));
 
-            core.summary
-            .addTitle('Metadata Generation Summary')
-            .addTable([
+            core.summary.addTable([
               [{data: 'Metric', header: true}, {data: 'Value', header: true}],
               ['Total Plugins', `${summaryData.total_plugins}`],
               ['Valid Plugins', `${summaryData.valid_plugins}`],
