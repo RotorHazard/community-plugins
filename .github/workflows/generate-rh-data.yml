@@ -24,7 +24,7 @@ jobs:
       - name: ⤵️ Check out code
         uses: actions/checkout@v4.2.2
 
-      - name: 🏗 install AWS CLI and JQ
+      - name: 🏗 Install AWS CLI and JQ
         run: sudo apt-get update && sudo apt-get install -y awscli jq
 
       - name: 🏗 Set up UV
@@ -106,7 +106,7 @@ jobs:
             const summaryData = JSON.parse(fs.readFileSync('output/summary.json', 'utf-8'));
 
             core.summary
-            .addHeading('Metadata Generation Summary')
+            .addTitle('Metadata Generation Summary')
             .addTable([
               [{data: 'Metric', header: true}, {data: 'Value', header: true}],
               ['Total Plugins', `${summaryData.total_plugins}`],
