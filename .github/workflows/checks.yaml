@@ -54,3 +54,16 @@ jobs:
           ADDED_REPO=$(echo "$ADDED_REPOS" | tr -d '"')
           echo "repository=$ADDED_REPO" >> $GITHUB_OUTPUT
           echo "Found added repository: $ADDED_REPO"
+
+  rhfest:
+    name: RHFest validation
+    needs: preflight
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone Added Plugin Repository
+        run: git clone --depth 1 "https://github.com/${{ needs.preflight.outputs.repository }}" ./repo
+
+      - name: Run RHFest Validation
+        uses: docker://ghcr.io/dutchdronesquad/rhfest-action:v1.0.1
+        with:
+          repository_path: ./repo

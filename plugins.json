@@ -1,6 +1,5 @@
 [
   "dutchdronesquad/rh-plugin-template",
   "dutchdronesquad/rh-stream-overlays",
-  "test/test",
-  "blabla/blabla"
+  "test/test"
 ]
