@@ -28,21 +28,29 @@ jobs:
       - name: Fetch main branch for comparison
         run: git fetch origin main
 
-      - name: Determine added repository
+      - name: Install JQ
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Determine Added Repository
         id: repository
         run: |
-          # Show diff and extract added repositories
-          ADDED_REPOS=$(git diff origin/main -- plugins.json | grep '^+' | grep -oE '[^"]+\/[^"]+')
+          # Get the previous plugins.json from main branch
+          git show origin/main:plugins.json > plugins_old.json
+
+          # Get the set difference between old and new plugins.json
+          ADDED_REPOS=$(jq -n --argfile old plugins_old.json --argfile new plugins.json \
+            '$new - $old | .[]')
+
           REPO_COUNT=$(echo "$ADDED_REPOS" | wc -l)
 
           if [ "$REPO_COUNT" -eq 0 ]; then
-            echo "::error::No new repository found in plugins.json."
+            echo "::error::No new repository found in plugins.json. Did the form fill correctly?"
             exit 1
           elif [ "$REPO_COUNT" -gt 1 ]; then
             echo "::error::Only one repository can be added per PR. Found $REPO_COUNT repositories."
             exit 1
           fi
 
-          ADDED_REPO=$(echo "$ADDED_REPOS" | tail -n 1)
+          ADDED_REPO=$(echo "$ADDED_REPOS" | tr -d '"')
           echo "repository=$ADDED_REPO" >> $GITHUB_OUTPUT
           echo "Found added repository: $ADDED_REPO"
