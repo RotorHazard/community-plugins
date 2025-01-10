@@ -1,0 +1,48 @@
+---
+name: Checks
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - plugins.json
+
+concurrency:
+  group: checks-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  preflight:
+    name: Preflight
+    runs-on: ubuntu-latest
+    outputs:
+      repository: ${{ steps.repository.outputs.repository }}
+    steps:
+      - name: ⤵️ Check out code
+        uses: actions/checkout@v4.2.2
+
+      - name: Fetch main branch for comparison
+        run: git fetch origin main
+
+      - name: Determine added repository
+        id: repository
+        run: |
+          # Show diff and extract added repositories
+          ADDED_REPOS=$(git diff origin/main -- plugins.json | grep '^+' | grep -oE '[^"]+\/[^"]+')
+          REPO_COUNT=$(echo "$ADDED_REPOS" | wc -l)
+
+          if [ "$REPO_COUNT" -eq 0 ]; then
+            echo "::error::No new repository found in plugins.json."
+            exit 1
+          elif [ "$REPO_COUNT" -gt 1 ]; then
+            echo "::error::Only one repository can be added per PR. Found $REPO_COUNT repositories."
+            exit 1
+          fi
+
+          ADDED_REPO=$(echo "$ADDED_REPOS" | tail -n 1)
+          echo "repository=$ADDED_REPO" >> $GITHUB_OUTPUT
+          echo "Found added repository: $ADDED_REPO"
