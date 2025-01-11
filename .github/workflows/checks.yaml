@@ -47,7 +47,8 @@ jobs:
           cat plugins.json
 
           # Compare old and new plugins.json
-          ADDED_REPOS=$(jq -r '[inputs] | add | unique | .[]' plugins.json plugins_old.json | grep -Fxvf plugins_old.json | jq -R)
+          ADDED_REPOS=$(jq -r --slurpfile old plugins_old.json --slurpfile new plugins.json \
+            '[.[] | select(. as $item | $old[0] | index($item) | not)] | .[]')
 
           echo "Added repositories: $ADDED_REPOS"
 
