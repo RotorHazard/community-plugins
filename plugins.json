@@ -1,6 +1,4 @@
 [
   "dutchdronesquad/rh-plugin-template",
-  "test/test",
-  "dutchdronesquad/rh-stream-overlays",
-  "FPVScores/FPVScores-Sync"
+  "dutchdronesquad/rh-stream-overlays"
 ]
