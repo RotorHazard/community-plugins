@@ -24,11 +24,13 @@ jobs:
     steps:
       - name: ⤵️ Check out code
         uses: actions/checkout@v4.2.2
+        with:
+          fetch-depth: 1
 
-      - name: Fetch main branch for comparison
-        run: git fetch origin main
+      - name: ⤵️ Fetch main branch plugins.json
+        run: git fetch origin main --depth=1
 
-      - name: Install JQ
+      - name: 🏗 Install JQ
         run: sudo apt-get update && sudo apt-get install -y jq
 
       - name: Determine Added Repository
@@ -44,7 +46,7 @@ jobs:
           REPO_COUNT=$(echo "$ADDED_REPOS" | wc -l)
 
           if [ "$REPO_COUNT" -eq 0 ]; then
-            echo "::error::No new repository found in plugins.json. Did the form fill correctly?"
+            echo "::error::No new repository found in plugins.json. Please ensure the form added the plugin."
             exit 1
           elif [ "$REPO_COUNT" -gt 1 ]; then
             echo "::error::Only one repository can be added per PR. Found $REPO_COUNT repositories."
@@ -53,14 +55,14 @@ jobs:
 
           ADDED_REPO=$(echo "$ADDED_REPOS" | tr -d '"')
           echo "repository=$ADDED_REPO" >> $GITHUB_OUTPUT
-          echo "Found added repository: $ADDED_REPO"
+          echo "✅ Found added repository: $ADDED_REPO"
 
   rhfest:
     name: RHFest validation
     needs: preflight
     runs-on: ubuntu-latest
     steps:
-      - name: Clone Added Plugin Repository
+      - name: ⤵️ Clone Added Plugin Repository
         run: git clone --depth 1 "https://github.com/${{ needs.preflight.outputs.repository }}" ./repo
 
       - name: Run RHFest Validation
