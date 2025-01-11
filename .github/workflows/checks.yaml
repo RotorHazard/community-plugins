@@ -39,9 +39,9 @@ jobs:
           # Get the previous plugins.json from main branch
           git show origin/main:plugins.json > plugins_old.json
 
-          # Get the set difference between old and new plugins.json
-          ADDED_REPOS=$(jq -n --slurpfile old plugins_old.json --slurpfile new plugins.json \
-            '$new - $old | .[]')
+          # Compare old and new plugins.json using slurpfile
+          ADDED_REPOS=$(jq -c --slurpfile old plugins_old.json --slurpfile new plugins.json \
+            '$new[0] - $old[0] | .[]')
 
           REPO_COUNT=$(echo "$ADDED_REPOS" | wc -l)
 
