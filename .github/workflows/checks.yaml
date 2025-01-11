@@ -47,8 +47,8 @@ jobs:
           cat plugins.json
 
           # Compare old and new plugins.json
-          ADDED_REPOS=$(jq --slurpfile old plugins_old.json --slurpfile new plugins.json \
-            '$new[0] - $old[0] | .[]' || echo "::error::JSON parsing failed")
+          ADDED_REPOS=$(jq -r --slurpfile old plugins_old.json --slurpfile new plugins.json \
+            '[.[] | select(. as $item | $old[0] | index($item) | not)] | .[]')
 
           echo "Added repositories: $ADDED_REPOS"
 
