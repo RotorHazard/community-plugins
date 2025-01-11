@@ -63,7 +63,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: ⤵️ Clone Added Plugin Repository
-        run: git clone --depth 1 "https://github.com/${{ needs.preflight.outputs.repository }}"
+        run: git clone --depth 1 "https://github.com/${{ needs.preflight.outputs.repository }}" .
 
       - name: Run RHFest Validation
         uses: docker://ghcr.io/dutchdronesquad/rhfest-action:klaas-2025-011
