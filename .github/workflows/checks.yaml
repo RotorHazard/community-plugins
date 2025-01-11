@@ -51,8 +51,6 @@ jobs:
             .[1] - .[0] | .[]
           ' plugins_old.json plugins.json)
 
-          echo "Added repositories: $ADDED_REPOS"
-
           REPO_COUNT=$(echo "$ADDED_REPOS" | wc -l)
 
           if [ "$REPO_COUNT" -eq 0 ]; then
