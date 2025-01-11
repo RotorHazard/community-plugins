@@ -2,9 +2,6 @@
 name: Generate RHCS Data
 
 on:
-  push:
-    branches:
-      - klaas-2025-004
   workflow_dispatch:
   schedule:
     - cron: "0 */2 * * *" # Every 2 hours
