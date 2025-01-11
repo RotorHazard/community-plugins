@@ -58,7 +58,10 @@ jobs:
             exit 1
           elif [ "$REPO_COUNT" -gt 1 ]; then
             echo "::error::Only one plugin repository can be added per PR. Found $REPO_COUNT repositories."
-            echo "Repositories found: $ADDED_REPOS"
+            echo "Repositories found:"
+            echo "$ADDED_REPOS" | while read repo; do
+              echo "- $repo"
+            done
             exit 1
           fi
 
