@@ -57,7 +57,8 @@ jobs:
             echo "::error::No new repository found in plugins.json. Please ensure the form added the plugin."
             exit 1
           elif [ "$REPO_COUNT" -gt 1 ]; then
-            echo "::error::Only one plugin repository can be added per PR. Found $REPO_COUNT repositories ($ADDED_REPOS)."
+            echo "::error::Only one plugin repository can be added per PR. Found $REPO_COUNT repositories."
+            echo "Repositories found: $ADDED_REPOS"
             exit 1
           fi
 
