@@ -40,7 +40,7 @@ jobs:
           git show origin/main:plugins.json > plugins_old.json
 
           # Get the set difference between old and new plugins.json
-          ADDED_REPOS=$(jq -n --argjson old plugins_old.json --argjson new plugins.json \
+          ADDED_REPOS=$(jq -n --slurpfile old plugins_old.json --slurpfile new plugins.json \
             '$new - $old | .[]')
 
           REPO_COUNT=$(echo "$ADDED_REPOS" | wc -l)
