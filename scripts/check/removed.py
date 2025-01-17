@@ -28,24 +28,16 @@ async def check_removed_repository() -> None:
 
     try:
         async with ClientSession() as session, session.get(CHECK_URL) as response:
-            if response.status != 200:
-                logging.error(
-                    "Failed to fetch removed repositories. "
-                    f"HTTP Status: {response.status}"
-                )
-                sys.exit(1)
-
             removed_repositories = {r.lower() for r in await response.json()}
             if repo in removed_repositories:
                 logging.error(f"'{repo}' has been removed from the RH Community Store.")
                 sys.exit(1)
-
     except ClientError:
         logging.exception("Client error occurred")
     except Exception:
         logging.exception("Unexpected error occurred")
-
-    logging.info(f"✅ '{repo}' is not removed from the RH Community Store.")
+    else:
+        logging.info(f"✅ '{repo}' is not removed from the RH Community Store.")
 
 
 if __name__ == "__main__":
