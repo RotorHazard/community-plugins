@@ -94,8 +94,15 @@ jobs:
       - name: 🏗 Install project dependencies
         run: uv sync --no-group dev
 
+      - name: ⤵️ Download data from Cloudflare R2
+        run: |
+          uv run aws s3 cp s3://rotorhazard-plugins/${{ env.VERSION }}/removed/repositories.json ./repositories.json --endpoint-url=${{ secrets.CF_R2_ENDPOINT }} || echo "[]" > repositories.json
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.CF_R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.CF_R2_SECRET_ACCESS_KEY }}
+
       - name: 🚀 Run validation
-        run: uv run python scripts/check/removed.py
+        run: uv run python scripts/check/removed.py --data-file repositories.json
         env:
           REPOSITORY: ${{ needs.preflight.outputs.repository }}
 

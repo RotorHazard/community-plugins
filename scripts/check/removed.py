@@ -1,11 +1,11 @@
 """Check if a plugin has been listed as removed."""
 
-import asyncio
+import argparse
+import json
 import logging
 import os
 import sys
-
-from aiohttp import ClientResponseError, ClientSession
+from pathlib import Path
 
 # Loggin setup
 logging.addLevelName(logging.INFO, "")
@@ -17,29 +17,27 @@ logging.basicConfig(
     handlers=[logging.StreamHandler(sys.stdout)],
 )
 
-CHECK_URL = "https://rh-data.dutchdronesquad.nl/v1/removed/repositories.json"
 
+def check_removed_repository(repo: str, data_file: str) -> None:
+    """Check if a plugin has been listed as removed.
 
-async def check_removed_repository() -> None:
-    """Check if a plugin has been listed as removed."""
-    repo = os.environ.get("REPOSITORY").lower()
-    if not repo:
-        logging.error("'REPOSITORY' environment variable is not set or empty.")
+    Args:
+    ----
+        repo (str): Repository name.
+        data_file (str): Path to the removed.json file.
 
+    """
     try:
-        async with ClientSession() as session, session.get(CHECK_URL) as response:
-            response.raise_for_status()
-            data = await response.json()
+        with Path.open(data_file) as file:
+            removed_plugins = json.load(file)
 
-            removed_repositories = {r.lower() for r in data} if data else set()
-            if repo in removed_repositories:
-                logging.error(f"'{repo}' has been removed from the RH Community Store.")
-                sys.exit(1)
-    except ClientResponseError:
-        logging.exception(
-            f"Error: HTTP request failed with status {response.status} "
-            f"for URL: {response.request_info.url}"
-        )
+        if repo in removed_plugins:
+            logging.warning(f"⚠️ '{repo}' is removed from the RH Community Store.")
+            sys.exit(1)
+    except FileNotFoundError:
+        logging.exception(f"::error::Could not find {data_file}. Ensure it exists.")
+    except json.JSONDecodeError:
+        logging.exception(f"::error::Invalid JSON format in {data_file}")
     except Exception:
         logging.exception("Unexpected error occurred")
     else:
@@ -47,4 +45,18 @@ async def check_removed_repository() -> None:
 
 
 if __name__ == "__main__":
-    asyncio.run(check_removed_repository())
+    parser = argparse.ArgumentParser(
+        description="Validate repository against removed list."
+    )
+    parser.add_argument(
+        "--data-file",
+        required=True,
+        help="Path to the short list of removed plugins.",
+    )
+    args = parser.parse_args()
+
+    repo = os.environ.get("REPOSITORY").lower()
+    if not repo:
+        logging.error("'REPOSITORY' environment variable is not set or empty.")
+
+    check_removed_repository(repo, args.data_file)
