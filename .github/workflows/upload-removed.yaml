@@ -1,0 +1,48 @@
+---
+name: Upload removed to R2
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - klaas-2025-007
+    paths:
+      - removed.json
+
+env:
+  VERSION: "v1"
+  DEFAULT_PYTHON: "3.13"
+
+concurrency:
+  group: upload-removed
+  cancel-in-progress: true
+
+jobs:
+  upload-removed:
+    name: Generate removed metadata
+    runs-on: ubuntu-latest
+    steps:
+      - name: ⤵️ Check out code
+        uses: actions/checkout@v4.2.2
+
+      - name: Validate with JSON schema
+        uses: cardinalby/schema-validator-action@3.1.1
+        with:
+          file: removed.json
+          schema: tools/jsonschema/removed.schema.json
+
+      - name: Process Removed File
+        run: |
+          mkdir -p output/removed
+          jq -c . < removed.json > output/removed/data.json
+          jq -c '[.[].repository]' < removed.json > output/removed/repositories.json
+
+      - name: Upload metadata Artifacts
+        uses: actions/upload-artifact@v4.5.0
+        with:
+          name: removed
+          path: output/removed
+          if-no-files-found: error
+          retention-days: 7
+
