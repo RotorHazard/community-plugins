@@ -5,6 +5,7 @@ on:
   pull_request:
     branches:
       - main
+      - klaas-2025-010
     paths:
       - plugins.json
 
