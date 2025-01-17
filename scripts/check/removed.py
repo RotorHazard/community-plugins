@@ -5,7 +5,7 @@ import logging
 import os
 import sys
 
-from aiohttp import ClientError, ClientSession
+from aiohttp import ClientResponseError, ClientSession
 
 # Loggin setup
 logging.addLevelName(logging.INFO, "")
@@ -28,12 +28,18 @@ async def check_removed_repository() -> None:
 
     try:
         async with ClientSession() as session, session.get(CHECK_URL) as response:
-            removed_repositories = {r.lower() for r in await response.json()}
+            response.raise_for_status()
+            data = await response.json()
+
+            removed_repositories = {r.lower() for r in data} if data else set()
             if repo in removed_repositories:
                 logging.error(f"'{repo}' has been removed from the RH Community Store.")
                 sys.exit(1)
-    except ClientError:
-        logging.exception("Client error occurred")
+    except ClientResponseError:
+        logging.exception(
+            f"Error: HTTP request failed with status {response.status} "
+            f"for URL: {response.request_info.url}"
+        )
     except Exception:
         logging.exception("Unexpected error occurred")
     else:
