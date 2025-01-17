@@ -55,8 +55,8 @@ jobs:
           ADDED_REPOS=$(jq -r --slurp '.[1] - .[0] | .[]' plugins_old.json plugins.json)
           REMOVED_REPOS=$(jq -r --slurp '.[0] - .[1] | .[]' plugins_old.json plugins.json)
 
-          ADDED_COUNT=$(echo "$ADDED_REPOS" | grep -cve '^\s*$')
-          REMOVED_COUNT=$(echo "$REMOVED_REPOS" | grep -cve '^\s*$')
+          ADDED_COUNT=$(echo "$ADDED_REPOS" | sed '/^\s*$/d' | wc -l)
+          REMOVED_COUNT=$(echo "$REMOVED_REPOS" | sed '/^\s*$/d' | wc -l)
 
           if [ "$ADDED_COUNT" -eq 1 ] && [ "$REMOVED_COUNT" -eq 0 ]; then
             echo "✅ One repository added: $ADDED_REPOS"
