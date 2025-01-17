@@ -58,11 +58,6 @@ jobs:
           ADDED_COUNT=$(echo "$ADDED_REPOS" | grep -cve '^\s*$')
           REMOVED_COUNT=$(echo "$REMOVED_REPOS" | grep -cve '^\s*$')
 
-          echo "Added repositories: $ADDED_REPOS"
-          echo "Removed repositories: $REMOVED_REPOS"
-          echo "Added count: $ADDED_COUNT"
-          echo "Removed count: $REMOVED_COUNT"
-
           if [ "$ADDED_COUNT" -eq 1 ] && [ "$REMOVED_COUNT" -eq 0 ]; then
             echo "✅ One repository added: $ADDED_REPOS"
             echo "repository=$(echo "$ADDED_REPOS" | tr -d '"')" >> $GITHUB_OUTPUT
@@ -73,6 +68,10 @@ jobs:
             echo "action=remove" >> $GITHUB_OUTPUT
           else
             echo "::error::PR must add or remove exactly one repository."
+            echo "Added repositories: $ADDED_REPOS"
+            echo "Removed repositories: $REMOVED_REPOS"
+            echo "Added count: $ADDED_COUNT"
+            echo "Removed count: $REMOVED_COUNT"
             exit 1
           fi
 
