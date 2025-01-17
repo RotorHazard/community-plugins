@@ -76,7 +76,7 @@ jobs:
           fi
 
   removed:
-    name: Removed repository validation
+    name: Removed validation
     if: ${{ needs.preflight.outputs.action == 'add' }}
     needs: preflight
     runs-on: ubuntu-latest
