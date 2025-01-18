@@ -2,9 +2,6 @@
 name: Upload plugins to R2
 
 on:
-  push:
-    branches:
-      - klaas-2025-014
   workflow_dispatch:
   schedule:
     - cron: "0 */2 * * *" # Every 2 hours
@@ -109,51 +106,51 @@ jobs:
             ])
             .write();
 
-  # publish:
-  #   name: Publish RHCS data
-  #   needs: summarize
-  #   runs-on: ubuntu-latest
-  #   environment:
-  #     name: plugin
-  #   steps:
-  #     - name: ⤵️ Check out code
-  #       uses: actions/checkout@v4.2.2
+  publish:
+    name: Publish RHCS data
+    needs: summarize
+    runs-on: ubuntu-latest
+    environment:
+      name: plugin
+    steps:
+      - name: ⤵️ Check out code
+        uses: actions/checkout@v4.2.2
 
-  #     - name: 🏗 Set up UV
-  #       uses: astral-sh/setup-uv@v4.2.0
-  #       with:
-  #         version: "latest"
-  #         python-version: ${{ env.DEFAULT_PYTHON }}
-  #         enable-cache: true
+      - name: 🏗 Set up UV
+        uses: astral-sh/setup-uv@v4.2.0
+        with:
+          version: "latest"
+          python-version: ${{ env.DEFAULT_PYTHON }}
+          enable-cache: true
 
-  #     - name: 🏗 Install project dependencies
-  #       run: uv sync --no-group dev
+      - name: 🏗 Install project dependencies
+        run: uv sync --no-group dev
 
-  #     - name: ⤵️ Download artifacts
-  #       uses: actions/download-artifact@v4.1.8
-  #       with:
-  #         name: plugin
-  #         path: output
+      - name: ⤵️ Download artifacts
+        uses: actions/download-artifact@v4.1.8
+        with:
+          name: plugin
+          path: output
 
-  #     - name: ⤴️ Upload data to Cloudflare R2
-  #       run: |
-  #         uv run aws s3 sync \
-  #           output/plugin \
-  #           s3://rotorhazard-plugins/${{ env.VERSION }}/plugin \
-  #           --endpoint-url=${{ secrets.CF_R2_ENDPOINT }}
+      - name: ⤴️ Upload data to Cloudflare R2
+        run: |
+          uv run aws s3 sync \
+            output/plugin \
+            s3://rotorhazard-plugins/${{ env.VERSION }}/plugin \
+            --endpoint-url=${{ secrets.CF_R2_ENDPOINT }}
 
-  #         uv run aws s3 cp \
-  #           output/diff/after.json \
-  #           s3://rotorhazard-plugins/${{ env.VERSION }}/plugin/diff/after.json \
-  #           --endpoint-url=${{ secrets.CF_R2_ENDPOINT }}
-  #       env:
-  #         AWS_ACCESS_KEY_ID: ${{ secrets.CF_R2_ACCESS_KEY_ID }}
-  #         AWS_SECRET_ACCESS_KEY: ${{ secrets.CF_R2_SECRET_ACCESS_KEY }}
+          uv run aws s3 cp \
+            output/diff/after.json \
+            s3://rotorhazard-plugins/${{ env.VERSION }}/plugin/diff/after.json \
+            --endpoint-url=${{ secrets.CF_R2_ENDPOINT }}
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.CF_R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.CF_R2_SECRET_ACCESS_KEY }}
 
-  #     - name: Bust Cloudflare cache
-  #       run: |
-  #         curl --silent --show-error --fail -X POST \
-  #           "https://api.cloudflare.com/client/v4/zones/${{ secrets.CF_ZONE_ID }}/purge_cache" \
-  #           -H "Authorization: Bearer ${{ secrets.CF_BUST_CACHE_TOKEN }}" \
-  #           -H "Content-Type: application/json" \
-  #           --data '{"purge_everything":true}'
+      - name: Bust Cloudflare cache
+        run: |
+          curl --silent --show-error --fail -X POST \
+            "https://api.cloudflare.com/client/v4/zones/${{ secrets.CF_ZONE_ID }}/purge_cache" \
+            -H "Authorization: Bearer ${{ secrets.CF_BUST_CACHE_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            --data '{"purge_everything":true}'
