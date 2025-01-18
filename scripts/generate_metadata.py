@@ -336,6 +336,7 @@ class MetadataGenerator:
         valid_repositories: list[str] = []
         skipped_plugins = 0
         archived_plugins = 0
+        renamed_plugins = 0
 
         start_time = perf_counter()
 
@@ -353,6 +354,14 @@ class MetadataGenerator:
                     repo_id, metadata = next(iter(result.items()))
                     plugin_data[repo_id] = metadata
                     valid_repositories.append(metadata["repository"])
+                    # Check if the repository name was updated
+                    if (
+                        metadata["repository"]
+                        != self.repos_list[
+                            valid_repositories.index(metadata["repository"])
+                        ]
+                    ):
+                        renamed_plugins += 1
                 else:
                     skipped_plugins += 1
 
