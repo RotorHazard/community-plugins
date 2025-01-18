@@ -174,7 +174,7 @@ class RotorHazardPlugin:
             logging.exception(f"<{self.repo}> Error fetching releases")
         return None
 
-    async def update_metadata(self, github: GitHubAPI) -> dict | None:
+    async def fetch_metadata(self, github: GitHubAPI) -> dict | None:
         """Fetch and update the plugin's metadata.
 
         Args:
@@ -314,7 +314,7 @@ class MetadataGenerator:
 
         async with GitHubAPI(token=GITHUB_TOKEN) as github:
             tasks = [
-                RotorHazardPlugin(repo).update_metadata(github)
+                RotorHazardPlugin(repo).fetch_metadata(github)
                 for repo in self.repos_list
             ]
             results = await asyncio.gather(*tasks)
