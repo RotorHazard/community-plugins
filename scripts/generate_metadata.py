@@ -186,33 +186,45 @@ class RotorHazardPlugin:
             dict | None: Metadata for the plugin.
 
         """
-        if not await self.get_plugin_domain(github):
-            return None
-        if not await self.validate_domain_manifest(github):
-            return None
-
         try:
             logging.info(f"<{self.repo}> Fetching repository metadata")
             repo_data = await github.repos.get(self.repo)
             if repo_data.etag:
                 self.etag_repository = repo_data.etag
-            last_version = await self.fetch_releases(github)
 
+            if repo_data.data.archived:
+                logging.error(f"<{self.repo}> Repository is archived")
+                return None
+
+            last_version = await self.fetch_releases(github)
+            self.metadata = {
+                "etag_release": self.etag_release,
+                "etag_repository": self.etag_repository,
+                "last_fetched": datetime.now(UTC).isoformat(),
+                "last_updated": repo_data.data.updated_at,
+                "last_version": last_version,
+                "open_issues": repo_data.data.open_issues_count,
+                "repository": self.repo,
+                "stargazers_count": repo_data.data.stargazers_count,
+                "topics": repo_data.data.topics,
+            }
+
+            # Fetch plugin domain
+            if not await self.get_plugin_domain(github):
+                return None
+
+            # Validate domain and manifest
+            if not await self.validate_domain_manifest(github):
+                return None
+
+            # Add manifest-specific metadata
             self.metadata = {
                 "manifest": {
                     "name": self.manifest_data.get("name"),
                     "description": self.manifest_data.get("description"),
                 },
                 "domain": self.domain,
-                "etag_release": self.etag_release,
-                "etag_repository": self.etag_repository,
-                "repository": self.repo,
-                "last_updated": repo_data.data.updated_at,
-                "last_version": last_version,
-                "open_issues": repo_data.data.open_issues_count,
-                "stargazers_count": repo_data.data.stargazers_count,
-                "topics": repo_data.data.topics,
-                "last_fetched": datetime.now(UTC).isoformat(),
+                **self.metadata,
             }
         except GitHubNotFoundException:
             logging.warning(f"<{self.repo}> Repository not found")
