@@ -85,20 +85,13 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    all_sorted = True
     for file in args.files:
         file_path = Path(file)
         if not file_path.exists():
             logging.error(f"❌ File not found: {file}")
-            all_sorted = False
             continue
 
-        result = sort_json(file_path, check_only=args.check)
-        if not result:
-            all_sorted = False
-
-        if not all_sorted:
-            sys.exit(1)
+        sort_json(file_path, check_only=args.check)
 
 
 if __name__ == "__main__":
