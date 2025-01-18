@@ -57,6 +57,7 @@ class RotorHazardPlugin:
 
         """
         try:
+            logging.info(f"<{self.repo}> Fetching plugin domain")
             response = await github.repos.contents.get(
                 self.repo, etag=self.etag_repository
             )
@@ -84,13 +85,13 @@ class RotorHazardPlugin:
             if len(subfolders) != 1:
                 logging.error(
                     f"<{self.repo}> Expected exactly one domain folder inside "
-                    f"`custom_plugins/` but found {len(subfolders)}."
+                    f"`custom_plugins/` but found: {len(subfolders)}."
                 )
                 return None
 
             # Get the domain folder name
             self.domain = subfolders[0].name
-            logging.info(f"<{self.repo}> Found domain {self.domain}")
+            logging.info(f"<{self.repo}> Found domain '{self.domain}'")
         except GitHubNotFoundException:
             logging.warning(f"<{self.repo}> Repository not found")
         except GitHubException:
