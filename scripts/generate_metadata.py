@@ -183,7 +183,7 @@ class RotorHazardPlugin:
 
         Returns:
         -------
-            dict | None: Metadata for the plugin.
+            dict | str | None: Plugin metadata if successful, "archived" if archived,
 
         """
         try:
@@ -194,6 +194,14 @@ class RotorHazardPlugin:
             if repo_data.data.archived:
                 logging.error(f"<{self.repo}> Repository is archived")
                 return "archived"
+
+            # Check if the repository has been renamed
+            full_name = repo_data.data.full_name
+            if full_name.lower() != self.repo.lower():
+                logging.error(
+                    f"<{self.repo}> Repository has been renamed to '{full_name}'"
+                )
+                self.repo = full_name  # Update the repo name
 
             # Fetch rest of the metadata
             if repo_data.etag:
