@@ -32,6 +32,25 @@ COMPARE_IGNORE = ["last_fetched", "etag_release", "etag_repository"]
 Path(f"{OUTPUT_DIR}/diff").mkdir(parents=True, exist_ok=True)
 
 
+class SummaryData:
+    """Summary data for metadata generation."""
+
+    def __init__(
+        self,
+        total: int,
+        valid: int,
+        archived: int,
+        renamed: int,
+        skipped: int,
+    ) -> None:
+        """Initialize the summary data."""
+        self.total = total
+        self.valid = valid
+        self.archived = archived
+        self.renamed = renamed
+        self.skipped = skipped
+
+
 class RotorHazardPlugin:
     """Handles fetching metdata for a RotorHazard plugin."""
 
@@ -300,10 +319,7 @@ class MetadataGenerator:
 
     async def summarize_results(
         self,
-        total: int,
-        valid: int,
-        skipped: int,
-        archived: int,
+        summary_data: SummaryData,
         start_time: float,
     ) -> None:
         """Summarize the generation results.
@@ -311,9 +327,7 @@ class MetadataGenerator:
         Args:
         ----
             total: Total number of repositories.
-            valid: Number of repositories with valid metadata.
-            archived: Number of archived repositories.
-            skipped: Number of repositories skipped during generation.
+            summary_data: An instance of SummaryData containing summary data.
             start_time: Time when the generation started.
 
         """
@@ -321,10 +335,11 @@ class MetadataGenerator:
         elapsed_time = end_time - start_time
 
         summary = {
-            "total_plugins": total,
-            "valid_plugins": valid,
-            "archived_plugins": archived,
-            "skipped_plugins": skipped,
+            "total_plugins": summary_data.total,
+            "valid_plugins": summary_data.valid,
+            "archived_plugins": summary_data.archived,
+            "renamed_plugins": summary_data.renamed,
+            "skipped_plugins": summary_data.skipped,
             "execution_time_seconds": round(elapsed_time, 2),
         }
         summary_path = f"{self.output_dir}/summary.json"
@@ -371,13 +386,14 @@ class MetadataGenerator:
         self.save_json(f"{self.output_dir}/repositories.json", valid_repositories)
 
         # Summarize the results
-        await self.summarize_results(
+        summary_data = SummaryData(
             total=len(self.repos_list),
             valid=len(valid_repositories),
-            skipped=skipped_plugins,
             archived=archived_plugins,
-            start_time=start_time,
+            renamed=renamed_plugins,
+            skipped=skipped_plugins,
         )
+        await self.summarize_results(summary_data, start_time)
 
 
 if __name__ == "__main__":
