@@ -174,7 +174,7 @@ class RotorHazardPlugin:
             logging.exception(f"<{self.repo}> Error fetching releases")
         return None
 
-    async def fetch_metadata(self, github: GitHubAPI) -> dict | None:
+    async def fetch_metadata(self, github: GitHubAPI) -> dict | str | None:
         """Fetch and update the plugin's metadata.
 
         Args:
@@ -189,14 +189,17 @@ class RotorHazardPlugin:
         try:
             logging.info(f"<{self.repo}> Fetching repository metadata")
             repo_data = await github.repos.get(self.repo)
-            if repo_data.etag:
-                self.etag_repository = repo_data.etag
 
+            # Check if the repository is archived
             if repo_data.data.archived:
                 logging.error(f"<{self.repo}> Repository is archived")
-                return None
+                return "archived"
 
+            # Fetch rest of the metadata
+            if repo_data.etag:
+                self.etag_repository = repo_data.etag
             last_version = await self.fetch_releases(github)
+
             self.metadata = {
                 "etag_release": self.etag_release,
                 "etag_repository": self.etag_repository,
@@ -292,6 +295,7 @@ class MetadataGenerator:
         total: int,
         valid: int,
         skipped: int,
+        archived: int,
         start_time: float,
     ) -> None:
         """Summarize the generation results.
@@ -300,6 +304,7 @@ class MetadataGenerator:
         ----
             total: Total number of repositories.
             valid: Number of repositories with valid metadata.
+            archived: Number of archived repositories.
             skipped: Number of repositories skipped during generation.
             start_time: Time when the generation started.
 
@@ -310,6 +315,7 @@ class MetadataGenerator:
         summary = {
             "total_plugins": total,
             "valid_plugins": valid,
+            "archived_plugins": archived,
             "skipped_plugins": skipped,
             "execution_time_seconds": round(elapsed_time, 2),
         }
@@ -321,6 +327,7 @@ class MetadataGenerator:
         plugin_data: dict[str, dict] = {}
         valid_repositories: list[str] = []
         skipped_plugins = 0
+        archived_plugins = 0
 
         start_time = perf_counter()
 
@@ -332,7 +339,9 @@ class MetadataGenerator:
             results = await asyncio.gather(*tasks)
 
             for result in results:
-                if result:
+                if result == "archived":
+                    archived_plugins += 1
+                elif result:
                     repo_id, metadata = next(iter(result.items()))
                     plugin_data[repo_id] = metadata
                     valid_repositories.append(metadata["repository"])
@@ -349,6 +358,7 @@ class MetadataGenerator:
             total=len(self.repos_list),
             valid=len(valid_repositories),
             skipped=skipped_plugins,
+            archived=archived_plugins,
             start_time=start_time,
         )
 
