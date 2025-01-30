@@ -187,17 +187,25 @@ class RotorHazardPlugin:
             if releases.etag:
                 self.etag_release = releases.etag
 
-            latest_release = None
-            latest_prerelease = None
+            if not releases.data:
+                logging.warning(f"<{self.repo}> No releases found")
+                return None, None
 
-            # Iterate over releases to find the first stable and prerelease
-            for release in releases.data:
-                if not latest_release and not release.prerelease:
-                    latest_release = release.tag_name
-                if not latest_prerelease and release.prerelease:
-                    latest_prerelease = release.tag_name
-                if latest_release and latest_prerelease:
-                    break
+            # Ensure releases are sorted by creation date (newest first)
+            sorted_releases = sorted(
+                releases.data, key=lambda r: r.created_at, reverse=True
+            )
+            # Extract latest stable and prerelease versions
+            latest_release = next(
+                (r.tag_name for r in sorted_releases if not r.prerelease), None
+            )
+            latest_prerelease = next(
+                (r.tag_name for r in sorted_releases if r.prerelease), None
+            )
+
+            logging.info(f"<{self.repo}> Latest stable release: {latest_release}")
+            if latest_prerelease:
+                logging.info(f"<{self.repo}> Latest prerelease: {latest_prerelease}")
         except GitHubNotFoundException:
             logging.warning(f"<{self.repo}> Zero github releases found")
         except GitHubException:
