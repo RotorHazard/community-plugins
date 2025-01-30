@@ -169,7 +169,7 @@ class RotorHazardPlugin:
             )
             return True
 
-    async def fetch_releases(self, github: GitHubAPI) -> str | None:
+    async def fetch_releases(self, github: GitHubAPI) -> tuple[str | None, str | None]:
         """Fetch the latest release tag from GitHub.
 
         Args:
@@ -178,7 +178,7 @@ class RotorHazardPlugin:
 
         Returns:
         -------
-            str | None: Latest release tag.
+            tuple[str | None, str | None]: Latest release and prerelease.
 
         """
         logging.info(f"<{self.repo}> Fetching releases")
@@ -186,12 +186,24 @@ class RotorHazardPlugin:
             releases = await github.repos.releases.list(self.repo)
             if releases.etag:
                 self.etag_release = releases.etag
-            return releases.data[0].tag_name if releases.data else None
+
+            latest_release = None
+            latest_prerelease = None
+
+            # Iterate over releases to find the first stable and prerelease
+            for release in releases.data:
+                if not latest_release and not release.prerelease:
+                    latest_release = release.tag_name
+                if not latest_prerelease and release.prerelease:
+                    latest_prerelease = release.tag_name
+                if latest_release and latest_prerelease:
+                    break
         except GitHubNotFoundException:
             logging.warning(f"<{self.repo}> Zero github releases found")
         except GitHubException:
             logging.exception(f"<{self.repo}> Error fetching releases")
-        return None
+        else:
+            return latest_release, latest_prerelease
 
     async def fetch_metadata(self, github: GitHubAPI) -> dict | str | None:
         """Fetch and update the plugin's metadata.
@@ -233,19 +245,24 @@ class RotorHazardPlugin:
             # Fetch rest of the metadata
             if repo_data.etag:
                 self.etag_repository = repo_data.etag
-            last_version = await self.fetch_releases(github)
+            last_version, last_prerelease_version = await self.fetch_releases(github)
 
             self.metadata = {
-                "repository": self.repo,
                 "etag_release": self.etag_release,
                 "etag_repository": self.etag_repository,
                 "last_fetched": datetime.now(UTC).isoformat(),
                 "last_updated": repo_data.data.updated_at,
                 "last_version": last_version,
                 "open_issues": repo_data.data.open_issues_count,
+                "repository": self.repo,
                 "stargazers_count": repo_data.data.stargazers_count,
                 "topics": repo_data.data.topics,
             }
+
+            # Add prerelease version if available
+            if last_prerelease_version:
+                self.metadata["last_prerelease"] = last_prerelease_version
+            self.metadata = dict(sorted(self.metadata.items()))
 
             # Add manifest-specific metadata
             self.metadata = {
