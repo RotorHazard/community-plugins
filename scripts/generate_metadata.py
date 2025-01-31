@@ -186,6 +186,11 @@ class RotorHazardPlugin:
             bool: `True` if the version is valid, `False` if there is a mismatch.
 
         """
+
+        def normalize_version(version: str | None) -> str | None:
+            """Remove 'v' prefix from version strings."""
+            return version.lstrip("v") if version else None
+
         logging.info(f"<{self.repo}> Validating manifest version")
         manifest_version = self.manifest_data.get("version")
 
@@ -193,14 +198,17 @@ class RotorHazardPlugin:
             logging.error(f"<{self.repo}> Manifest version is missing")
             return False
 
+        last_version = normalize_version(last_version)
+        prerelease_version = normalize_version(prerelease_version)
+
         # If the version matches either stable or prerelease
         if manifest_version in {last_version, prerelease_version}:
             return True
 
         # Mismatch - version is outdated
         logging.warning(
-            f"<{self.repo}> Version mismatch: '{manifest_version}' "
-            f"(manifest) vs '{last_version}' (latest)"
+            f"<{self.repo}> Version mismatch: '{manifest_version}' (manifest) "
+            f"vs '{last_version}' (latest stable), '{prerelease_version}' (prerelease)"
         )
         return False
 
