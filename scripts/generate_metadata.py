@@ -206,10 +206,13 @@ class RotorHazardPlugin:
             return True
 
         # Mismatch - version is outdated
-        logging.warning(
-            f"<{self.repo}> Version mismatch: '{manifest_version}' (manifest) "
-            f"vs '{last_version}' (latest stable), '{prerelease_version}' (prerelease)"
+        warning_message = (
+            f"<{self.repo}> Version mismatch: '{manifest_version}' "
+            f"(manifest) vs '{last_version}' (latest stable)"
         )
+        if prerelease_version:
+            warning_message += f", '{prerelease_version}' (prerelease)"
+        logging.warning(warning_message)
         return False
 
     async def fetch_releases(self, github: GitHubAPI) -> tuple[str | None, str | None]:
