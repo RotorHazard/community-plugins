@@ -299,10 +299,7 @@ class RotorHazardPlugin:
             last_version, last_prerelease_version = await self.fetch_releases(github)
 
             # Validate manifest version against github releases
-            if not await self.validate_manifest_version(
-                last_version, last_prerelease_version
-            ):
-                return None
+            await self.validate_manifest_version(last_version, last_prerelease_version)
 
             self.metadata = {
                 "etag_release": self.etag_release,
