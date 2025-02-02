@@ -5,6 +5,7 @@
 ## Description
 
 
+
 ## Checklist
 <!--
     Put an `x` in the boxes that you have completed. You can
@@ -17,11 +18,14 @@
 - [ ] I've created a github release in my repository.
 - [ ] I've added all the requested links below.
 
+**Note:** all checks above should be passed before a pull request will be merged.
+
 ## Additional information
 <!--
     Details are important, and help us processing your PR.
     Please be sure to fill out additional details.
 -->
 
+- Link to plugin repository:
 - Link to current release:
 - Link to successful rhfest action:
