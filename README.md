@@ -4,11 +4,14 @@ This project contains the database generation code for the RotorHazard Community
 
 ## Add a new plugin
 
-- TODO
+1. Fork this repository.
+2. Create a new branch from the **main** branch.
+3. Add your plugin to the `plugins.json` file.
+4. Create a pull request.
 
 ### Before submitting
 
-- TODO
+If you apply the [plugin template][plugin-template] to an existing RotorHazard plugin that uses GitHub releases, please note that the community store / plugin install manager is only compatible with published releases that also pass the [RHFest][rhfest-action] checks.
 
 ## 🌟 Credits
 
@@ -17,3 +20,7 @@ This project is inspired by the way how [HACS](https://hacs.xyz/) handles the me
 ## License
 
 Distributed under the **MIT** License. See [`LICENSE`](LICENSE) for more information.
+
+<!-- Links -->
+[plugin-template]: https://github.com/dutchdronesquad/rh-plugin-template
+[rhfest-action]: https://github.com/dutchdronesquad/rhfest-action
