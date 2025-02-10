@@ -22,5 +22,5 @@ This project is inspired by the way how [HACS](https://hacs.xyz/) handles the me
 Distributed under the **MIT** License. See [`LICENSE`](LICENSE) for more information.
 
 <!-- Links -->
-[plugin-template]: https://github.com/dutchdronesquad/rh-plugin-template
-[rhfest-action]: https://github.com/dutchdronesquad/rhfest-action
+[plugin-template]: https://github.com/rotorhazard/plugin-template
+[rhfest-action]: https://github.com/rotorhazard/rhfest-action
