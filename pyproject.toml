@@ -35,10 +35,8 @@ lint.ignore = [
 
   # Conflicts with the Ruff formatter
   "COM812",
-  "ISC001",
 
   # Custom ignores
-  #"T201",    # Allow print statements
   "G004",
 ]
 
