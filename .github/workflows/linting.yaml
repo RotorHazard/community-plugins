@@ -86,6 +86,11 @@ jobs:
         with:
           file: removed.json
           schema: tools/jsonschema/removed.schema.json
+      - name: Categories
+        uses: cardinalby/schema-validator-action@3.1.1
+        with:
+          file: categories.json
+          schema: tools/jsonschema/categories.schema.json
 
   sorted:
     name: Sorted
