@@ -326,6 +326,7 @@ class RotorHazardPlugin:
                 "manifest": {
                     "name": self.manifest_data.get("name"),
                     "description": self.manifest_data.get("description"),
+                    "category": self.manifest_data.get("category"),
                     **{
                         key: self.manifest_data[key]
                         for key in ["zip_release", "zip_filename"]
