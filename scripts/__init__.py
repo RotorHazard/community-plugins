@@ -1,1 +1,1 @@
-"""RH Community Store data scripts."""
+"""RH Community Plugins data scripts."""

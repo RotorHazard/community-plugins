@@ -13,7 +13,7 @@
     about any of them, don't hesitate to ask. We're here to help!
 -->
 
-- [ ] I've added the [RHFest action](https://github.com/rotorhazard/rhfest-action) to my repository.
+- [ ] I've added the [RHFest action](https://github.com/RotorHazard/rhfest-action) to my repository.
 - [ ] The actions are passing without any disabled checks in my repository.
 - [ ] I've created a github release in my repository.
 - [ ] I've added all the requested links below.

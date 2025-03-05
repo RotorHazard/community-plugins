@@ -32,7 +32,7 @@ def check_removed_repository(repo: str, data_file: str) -> None:
             removed_plugins = json.load(file)
 
         if repo in removed_plugins:
-            logging.warning(f"⚠️ '{repo}' is removed from the RH Community Store.")
+            logging.warning(f"⚠️ '{repo}' is removed from the RH Community Plugins DB.")
             sys.exit(1)
     except FileNotFoundError:
         logging.exception(f"::error::Could not find {data_file}. Ensure it exists.")
@@ -41,7 +41,7 @@ def check_removed_repository(repo: str, data_file: str) -> None:
     except Exception:
         logging.exception("Unexpected error occurred")
     else:
-        logging.info(f"✅ '{repo}' is not removed from the RH Community Store.")
+        logging.info(f"✅ '{repo}' is not removed from the RH Community Plugins DB.")
 
 
 if __name__ == "__main__":

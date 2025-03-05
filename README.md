@@ -11,7 +11,7 @@ This project contains the database generation code for the list of community plu
 
 ### Before submitting
 
-If you apply the [plugin template][plugin-template] to an existing RotorHazard plugin that uses GitHub releases, please note that the community store / plugin install manager is only compatible with published releases that also pass the [RHFest][rhfest-action] checks.
+If you apply the [plugin template][plugin-template] to an existing RotorHazard plugin that uses GitHub releases, please note that the community plugins database / plugin install manager is only compatible with published releases that also pass the [RHFest][rhfest-action] checks.
 
 ## 🌟 Credits
 
