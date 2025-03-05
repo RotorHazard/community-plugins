@@ -1,6 +1,6 @@
-# RotorHazard Community Store
+# RotorHazard Community Plugins
 
-This project contains the database generation code for the RotorHazard Community Store.
+This project contains the database generation code for the list of community plugins for RotorHazard.
 
 ## Add a new plugin
 
