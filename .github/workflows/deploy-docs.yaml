@@ -8,6 +8,8 @@ on:
     branches:
       - main
       - klaas-2025-032
+    paths:
+      - "docs/**"
 
 env:
   DEFAULT_PYTHON: "3.13"

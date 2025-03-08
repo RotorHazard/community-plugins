@@ -10,8 +10,44 @@ edit_uri: edit/main/docs/
 theme:
   name: material
   language: en
+  icon:
+    logo: fontawesome/solid/puzzle-piece
+  palette:
+    # Palette toggle for light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: orange
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    # Palette toggle for dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: black
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+  features:
+    - content.action.edit
+    - content.code.annotate
+    - content.code.copy
+    - navigation.path
+    - navigation.sections
+    - navigation.tabs
+    - navigation.top
 
 # Plugins
 plugins:
   - search:
+      lang: en
       separator: '[\s\u200b\-_,:!=\[\]()"`/]+|\.(?!\d)|&[lg]t;|(?!\b)(?=[A-Z][a-z])'
+
+nav:
+  - Home: index.md
+  - Add Plugin:
+    - docs/add/index.md
+    - docs/add/general.md
+    - docs/add/include.md
+    - docs/add/action.md
+    - docs/add/plugin.md
+    - docs/add/remove.md
