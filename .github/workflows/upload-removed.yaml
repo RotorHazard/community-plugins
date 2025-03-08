@@ -75,7 +75,7 @@ jobs:
         run: |
           uv run aws s3 sync \
             output \
-            s3://rotorhazard-plugins/${{ env.VERSION }}/removed \
+            s3://rotorhazard-community-plugins/${{ env.VERSION }}/removed \
             --endpoint-url=${{ secrets.CF_R2_ENDPOINT }}
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.CF_R2_ACCESS_KEY_ID }}
@@ -88,6 +88,6 @@ jobs:
             -H "Authorization: Bearer ${{ secrets.CF_BUST_CACHE_TOKEN }}" \
             -H "Content-Type: application/json" \
             --data '{"files": [
-              "https://rh-data.dutchdronesquad.nl/${{ env.VERSION }}/removed/data.json",
-              "https://rh-data.dutchdronesquad.nl/${{ env.VERSION }}/removed/repositories.json"
+              "https://rhcp.hazardcreative.com/${{ env.VERSION }}/removed/data.json",
+              "https://rhcp.hazardcreative.com/${{ env.VERSION }}/removed/repositories.json"
             ]}'
