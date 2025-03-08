@@ -385,7 +385,7 @@ class RotorHazardPlugin:
             logging.exception(f"<{self.repo}> Error fetching repository metadata")
         else:
             logging.info(f"<{self.repo}> Metadata successfully generated")
-            return {self.repo: self.metadata}
+            return {self.repo_data.id: self.metadata}
 
 
 class MetadataGenerator:
@@ -490,12 +490,12 @@ class MetadataGenerator:
                     skipped_plugins += 1
                     continue
 
-                repo_name, metadata = next(iter(result.items()))
+                repo_id, metadata = next(iter(result.items()))
                 if metadata.get("archived"):
                     archived_plugins += 1
                     continue
 
-                plugin_data[repo_name] = metadata
+                plugin_data[repo_id] = metadata
                 valid_repositories.append(metadata.get("repository"))
 
                 if (
