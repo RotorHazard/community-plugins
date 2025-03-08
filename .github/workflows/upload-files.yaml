@@ -1,5 +1,5 @@
 ---
-name: Upload removed to R2
+name: Upload files to R2
 
 on:
   workflow_dispatch:
@@ -8,49 +8,20 @@ on:
       - main
     paths:
       - removed.json
+      - categories.json
 
 env:
   VERSION: "v1"
   DEFAULT_PYTHON: "3.13"
 
 concurrency:
-  group: upload-removed
+  group: upload-files
   cancel-in-progress: true
 
 jobs:
-  upload-removed:
-    name: Generate removed metadata
+  upload-files:
+    name: Process and Publish data
     runs-on: ubuntu-latest
-    steps:
-      - name: ⤵️ Check out code
-        uses: actions/checkout@v4.2.2
-
-      - name: Validate with JSON schema
-        uses: cardinalby/schema-validator-action@3.1.1
-        with:
-          file: removed.json
-          schema: tools/jsonschema/removed.schema.json
-
-      - name: Process Removed File
-        run: |
-          mkdir -p output/removed
-          jq -c . < removed.json > output/removed/data.json
-          jq -c '[.[].repository]' < removed.json > output/removed/repositories.json
-
-      - name: Upload metadata Artifacts
-        uses: actions/upload-artifact@v4.6.1
-        with:
-          name: removed
-          path: output/removed
-          if-no-files-found: error
-          retention-days: 7
-
-  publish:
-    name: Publish removed metadata
-    runs-on: ubuntu-latest
-    needs: upload-removed
-    environment:
-      name: removed
     steps:
       - name: ⤵️ Check out code
         uses: actions/checkout@v4.2.2
@@ -65,17 +36,34 @@ jobs:
       - name: 🏗 Install project dependencies
         run: uv sync --no-group dev
 
-      - name: ⤵️ Download artifacts
-        uses: actions/download-artifact@v4.1.9
+      - name: Validate removed.json with JSON schema
+        uses: cardinalby/schema-validator-action@3.1.1
         with:
-          name: removed
-          path: output
+          file: removed.json
+          schema: tools/jsonschema/removed.schema.json
+
+      - name: Validate categories.json with JSON schema
+        uses: cardinalby/schema-validator-action@3.1.1
+        with:
+          file: categories.json
+          schema: tools/jsonschema/categories.schema.json
+
+      - name: Process Removed File
+        run: |
+          mkdir -p removed
+          jq -c . < removed.json > removed/data.json
+          jq -c '[.[].repository]' < removed.json > removed/repositories.json
 
       - name: ⤴️ Upload data to Cloudflare R2
         run: |
           uv run aws s3 sync \
-            output \
+            removed \
             s3://rotorhazard-community-plugins/${{ env.VERSION }}/removed \
+            --endpoint-url=${{ secrets.CF_R2_ENDPOINT }}
+
+          uv run aws s3 cp \
+            categories.json \
+            s3://rotorhazard-community-plugins/${{ env.VERSION }}/plugin/categories.json \
             --endpoint-url=${{ secrets.CF_R2_ENDPOINT }}
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.CF_R2_ACCESS_KEY_ID }}
@@ -90,4 +78,5 @@ jobs:
             --data '{"files": [
               "https://rhcp.hazardcreative.com/${{ env.VERSION }}/removed/data.json",
               "https://rhcp.hazardcreative.com/${{ env.VERSION }}/removed/repositories.json"
+              "https://rhcp.hazardcreative.com/${{ env.VERSION }}/plugin/categories.json"
             ]}'
