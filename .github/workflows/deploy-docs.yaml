@@ -10,7 +10,7 @@ on:
       - klaas-2025-032
 
 env:
-  DEFAULT_PYTHON: "3.11"
+  DEFAULT_PYTHON: "3.13"
 
 jobs:
   build-docs:
