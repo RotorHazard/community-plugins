@@ -372,7 +372,7 @@ class RotorHazardPlugin:
                     "category": self.manifest_data.get("category"),
                     **{
                         key: self.manifest_data[key]
-                        for key in ["zip_release", "zip_filename"]
+                        for key in ["documentation_uri", "dependencies", "zip_filename"]
                         if key in self.manifest_data
                     },
                 },
