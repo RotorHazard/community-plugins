@@ -35,7 +35,7 @@ jobs:
       - name: ⤵️ Download data from Cloudflare R2
         run: |
           mkdir -p ./output/plugin/diff
-          uv run aws s3 cp s3://rotorhazard-plugins/${{ env.VERSION }}/plugin/diff/after.json ./output/plugin/diff/before.json --endpoint-url=${{ secrets.CF_R2_ENDPOINT }} || echo "{}" > ./output/plugin/diff/before.json
+          uv run aws s3 cp s3://rotorhazard-community-plugins/${{ env.VERSION }}/plugin/diff/after.json ./output/plugin/diff/before.json --endpoint-url=${{ secrets.CF_R2_ENDPOINT }} || echo "{}" > ./output/plugin/diff/before.json
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.CF_R2_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.CF_R2_SECRET_ACCESS_KEY }}
@@ -138,12 +138,12 @@ jobs:
         run: |
           uv run aws s3 sync \
             output/plugin \
-            s3://rotorhazard-plugins/${{ env.VERSION }}/plugin \
+            s3://rotorhazard-community-plugins/${{ env.VERSION }}/plugin \
             --endpoint-url=${{ secrets.CF_R2_ENDPOINT }}
 
           uv run aws s3 cp \
             output/diff/after.json \
-            s3://rotorhazard-plugins/${{ env.VERSION }}/plugin/diff/after.json \
+            s3://rotorhazard-community-plugins/${{ env.VERSION }}/plugin/diff/after.json \
             --endpoint-url=${{ secrets.CF_R2_ENDPOINT }}
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.CF_R2_ACCESS_KEY_ID }}
