@@ -77,6 +77,6 @@ jobs:
             -H "Content-Type: application/json" \
             --data '{"files": [
               "https://rhcp.hazardcreative.com/${{ env.VERSION }}/removed/data.json",
-              "https://rhcp.hazardcreative.com/${{ env.VERSION }}/removed/repositories.json"
+              "https://rhcp.hazardcreative.com/${{ env.VERSION }}/removed/repositories.json",
               "https://rhcp.hazardcreative.com/${{ env.VERSION }}/plugin/categories.json"
             ]}'
