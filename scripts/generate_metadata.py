@@ -65,7 +65,7 @@ class RotorHazardPlugin:
         self.domain = None
         self.metadata = {}
         self.manifest_data = {}
-        self.repo_data = {}
+        self.repo_metadata = {}
         self.etag_repository = None
         self.etag_release = None
         self.latest_stable = None
@@ -86,7 +86,7 @@ class RotorHazardPlugin:
         try:
             repo_response = await github.repos.get(self.repo)
             self.repo = repo_response.data.full_name
-            self.repo_data = repo_response.data
+            self.repo_metadata = repo_response.data
         except GitHubRatelimitException:
             logging.error(  # noqa: TRY400
                 f"<{self.repo}> GitHub rate limit exceeded! Please try again later."
@@ -161,7 +161,7 @@ class RotorHazardPlugin:
         ref = (
             self.latest_prerelease
             or self.latest_stable
-            or self.repo_data.default_branch
+            or self.repo_metadata.default_branch
         )
         manifest_path = f"custom_plugins/{self.domain}/manifest.json"
 
@@ -198,7 +198,7 @@ class RotorHazardPlugin:
         ref = (
             self.latest_prerelease
             or self.latest_stable
-            or self.repo_data.default_branch
+            or self.repo_metadata.default_branch
         )
         try:
             logging.info(f"<{self.repo}> Fetching plugin domain")
@@ -319,12 +319,12 @@ class RotorHazardPlugin:
                 return None
 
             # Check if the repository is archived
-            if self.repo_data.archived:
+            if self.repo_metadata.archived:
                 logging.error(f"<{self.repo}> Repository is archived")
                 return {self.repo: {"archived": True}}
 
             # Check if the repository has been renamed
-            full_name = self.repo_data.full_name
+            full_name = self.repo_metadata.full_name
             if full_name.lower() != self.repo.lower():
                 logging.error(
                     f"<{self.repo}> Repository has been renamed to '{full_name}'"
@@ -351,12 +351,12 @@ class RotorHazardPlugin:
                 "etag_release": self.etag_release,
                 "etag_repository": self.etag_repository,
                 "last_fetched": datetime.now(UTC).isoformat(),
-                "last_updated": self.repo_data.updated_at,
+                "last_updated": self.repo_metadata.updated_at,
                 "last_version": self.latest_stable,
-                "open_issues": self.repo_data.open_issues_count,
+                "open_issues": self.repo_metadata.open_issues_count,
                 "repository": self.repo,
-                "stargazers_count": self.repo_data.stargazers_count,
-                "topics": self.repo_data.topics,
+                "stargazers_count": self.repo_metadata.stargazers_count,
+                "topics": self.repo_metadata.topics,
             }
 
             # Add prerelease version if available
@@ -385,7 +385,7 @@ class RotorHazardPlugin:
             logging.exception(f"<{self.repo}> Error fetching repository metadata")
         else:
             logging.info(f"<{self.repo}> Metadata successfully generated")
-            return {self.repo_data.id: self.metadata}
+            return {self.repo_metadata.id: self.metadata}
 
 
 class MetadataGenerator:
