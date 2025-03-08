@@ -10,7 +10,12 @@ from datetime import UTC, datetime
 from pathlib import Path
 from time import perf_counter
 
-from aiogithubapi import GitHubAPI, GitHubException, GitHubNotFoundException
+from aiogithubapi import (
+    GitHubAPI,
+    GitHubException,
+    GitHubNotFoundException,
+    GitHubRatelimitException,
+)
 
 # Loggin setup
 logging.addLevelName(logging.INFO, "")
@@ -60,11 +65,14 @@ class RotorHazardPlugin:
         self.domain = None
         self.metadata = {}
         self.manifest_data = {}
+        self.repo_metadata = {}
         self.etag_repository = None
         self.etag_release = None
+        self.latest_stable = None
+        self.latest_prerelease = None
 
-    async def get_plugin_domain(self, github: GitHubAPI) -> str | None:
-        """Fetch the folder name (domain) from the `custom_plugins/` folder.
+    async def fetch_repository_info(self, github: GitHubAPI) -> bool:
+        """Fetch and store repository metadata from GitHub.
 
         Args:
         ----
@@ -72,13 +80,130 @@ class RotorHazardPlugin:
 
         Returns:
         -------
-            str | None: Plugin domain name.
+            bool: True if the repository data is fetched successfully, False otherwise.
 
         """
         try:
+            repo_response = await github.repos.get(self.repo)
+            self.repo = repo_response.data.full_name
+            self.repo_metadata = repo_response.data
+        except GitHubRatelimitException:
+            logging.error(  # noqa: TRY400
+                f"<{self.repo}> GitHub rate limit exceeded! Please try again later."
+            )
+            return False
+        except GitHubNotFoundException:
+            logging.warning(f"<{self.repo}> Repository not found")
+            return False
+        except GitHubException:
+            logging.exception(f"<{self.repo}> Error fetching repository info")
+            return False
+        else:
+            self.etag_repository = repo_response.etag
+            return True
+
+    async def fetch_github_releases(self, github: GitHubAPI) -> bool:
+        """Fetch the latest stable and prerelease versions from GitHub.
+
+        Args:
+        ----
+            github: GitHubAPI instance.
+
+        Returns:
+        -------
+            bool: True if the releases are fetched successfully, False otherwise.
+
+        """
+        logging.info(f"<{self.repo}> Fetching releases")
+        try:
+            releases = await github.repos.releases.list(self.repo)
+            if releases.etag:
+                self.etag_release = releases.etag
+
+            if not releases.data:
+                logging.warning(f"<{self.repo}> No releases found")
+                return False
+
+            # Ensure releases are sorted by creation date (newest first)
+            sorted_releases = sorted(
+                releases.data, key=lambda r: r.created_at, reverse=True
+            )
+            # Extract latest stable and prerelease versions
+            self.latest_stable = next(
+                (r.tag_name for r in sorted_releases if not r.prerelease), None
+            )
+            self.latest_prerelease = next(
+                (r.tag_name for r in sorted_releases if r.prerelease), None
+            )
+        except GitHubException:
+            logging.exception(f"<{self.repo}> Error fetching releases")
+        else:
+            # log the latest stable and prerelease versions
+            logging.info(f"<{self.repo}> Latest stable release: {self.latest_stable}")
+            if self.latest_prerelease:
+                logging.info(
+                    f"<{self.repo}> Latest pre-release: {self.latest_prerelease}"
+                )
+            return True
+
+    async def fetch_manifest_file(self, github: GitHubAPI) -> bool:
+        """Fetch the manifest file from the repository.
+
+        Args:
+        ----
+            github: GitHubAPI instance.
+
+        Returns:
+        -------
+            bool: True if the manifest file is fetched successfully, False otherwise.
+
+        """
+        ref = (
+            self.latest_prerelease
+            or self.latest_stable
+            or self.repo_metadata.default_branch
+        )
+        manifest_path = f"custom_plugins/{self.domain}/manifest.json"
+
+        try:
+            response = await github.repos.contents.get(
+                self.repo, manifest_path, ref=ref
+            )
+            self.manifest_data = json.loads(
+                base64.b64decode(response.data.content).decode("utf-8")
+            )
+            logging.info(
+                f"<{self.repo}> Successfully fetched manifest.json from '{ref}' branch"
+            )
+        except (GitHubNotFoundException, json.JSONDecodeError, GitHubException):
+            logging.exception(
+                f"<{self.repo}> File not found: '{manifest_path}' in '{ref}'"
+            )
+            return False
+        else:
+            return True
+
+    async def validate_plugin_repository(self, github: GitHubAPI) -> bool:
+        """Fetch the plugin domain and validate the repository structure.
+
+        Args:
+        ----
+            github: GitHubAPI instance.
+
+        Returns:
+        -------
+            bool: True if the plugin domain is fetched successfully, False otherwise.
+
+        """
+        ref = (
+            self.latest_prerelease
+            or self.latest_stable
+            or self.repo_metadata.default_branch
+        )
+        try:
             logging.info(f"<{self.repo}> Fetching plugin domain")
             response = await github.repos.contents.get(
-                self.repo, etag=self.etag_repository
+                self.repo, etag=self.etag_repository, ref=ref
             )
 
             # Check for `custom_plugins/` folder
@@ -91,8 +216,8 @@ class RotorHazardPlugin:
                 None,
             )
             if not custom_plugins_folder:
-                logging.error(f"<{self.repo}> The `custom_plugins/` folder is missing")
-                return None
+                logging.error(f"<{self.repo}> Missing `custom_plugins/` folder")
+                return False
 
             # Fetch the contens of the `custom_plugins/` folder
             folder_response = await github.repos.contents.get(
@@ -103,85 +228,47 @@ class RotorHazardPlugin:
             # Ensure there is exactly one domain folder
             if len(subfolders) != 1:
                 logging.error(
-                    f"<{self.repo}> Expected exactly one domain folder inside "
-                    f"`custom_plugins/` but found: {len(subfolders)}."
+                    f"<{self.repo}> Expected one domain folder in "
+                    f"`custom_plugins/`, found: {len(subfolders)}."
                 )
-                return None
+                return False
 
             # Get the domain folder name
             self.domain = subfolders[0].name
-            logging.info(f"<{self.repo}> Found domain '{self.domain}'")
         except GitHubNotFoundException:
             logging.warning(f"<{self.repo}> Repository not found")
         except GitHubException:
             logging.exception(f"<{self.repo}> Error fetching plugin domain")
         else:
-            return self.domain
+            logging.info(f"<{self.repo}> Found domain '{self.domain}'")
+            return True
 
-    async def validate_manifest_domain(self, github: GitHubAPI) -> bool:
+    async def validate_manifest_domain(self) -> bool:
         """Validate that the domain in `manifest.json` matches the folder name.
 
-        Args:
-        ----
-            github: GitHubAPI instance.
-
-        Returns:
+        Returns
         -------
             bool: True if the domain matches the folder name, False otherwise.
 
         """
-        if not self.domain:
+        # Check if the domain in manifest.json matches the folder name
+        if self.manifest_data.get("domain") != self.domain:
+            logging.error(
+                f"<{self.repo}> Domain mismatch: Folder "
+                f"'{self.domain}' vs Manifest '{self.manifest_data.get('domain')}'"
+            )
             return False
 
-        manifest_path = f"custom_plugins/{self.domain}/manifest.json"
-        try:
-            response = await github.repos.contents.get(self.repo, manifest_path)
+        # Domain matches
+        logging.info(
+            f"<{self.repo}> Domain validated: '{self.domain}' matches manifest domain."
+        )
+        return True
 
-            # Decode Base64 content manually
-            manifest = json.loads(
-                base64.b64decode(response.data.content).decode("utf-8")
-            )
-            self.manifest_data = manifest
-            manifest_domain = manifest.get("domain")
-
-            # Compare the domain in the manifest with the folder name
-            if manifest_domain != self.domain:
-                logging.error(
-                    f"<{self.repo}> Domain mismatch: Folder "
-                    f"'{self.domain}' vs Manifest '{manifest_domain}'"
-                )
-                return False
-        except GitHubNotFoundException:
-            logging.exception(
-                f"<{self.repo}> Manifest file not found at '{manifest_path}'"
-            )
-        except json.JSONDecodeError:
-            logging.exception(
-                f"<{self.repo}> Manifest file at '{manifest_path}' "
-                "contains invalid JSON"
-            )
-        except GitHubException:
-            logging.exception(f"Error fetching manifest for '{self.repo}'")
-        else:
-            logging.info(
-                f"<{self.repo}> Domain validated: '{self.domain}' "
-                "matches manifest domain."
-            )
-            return True
-
-    async def validate_manifest_version(
-        self,
-        last_version: str | None,
-        prerelease_version: str | None,
-    ) -> bool:
+    async def validate_manifest_version(self) -> bool:
         """Validate if version in manifest.json matches the latest stable or prerelease.
 
-        Args:
-        ----
-            last_version: Latest stable release tag.
-            prerelease_version: Latest prerelease tag.
-
-        Returns:
+        Returns
         -------
             bool: `True` if the version is valid, `False` if there is a mismatch.
 
@@ -194,72 +281,24 @@ class RotorHazardPlugin:
         logging.info(f"<{self.repo}> Validating manifest version")
         manifest_version = self.manifest_data.get("version")
 
-        if not manifest_version:
-            logging.error(f"<{self.repo}> Manifest version is missing")
-            return False
-
-        last_version = normalize_version(last_version)
-        prerelease_version = normalize_version(prerelease_version)
+        stable_version = normalize_version(self.latest_stable)
+        prerelease_version = normalize_version(self.latest_prerelease)
 
         # If the version matches either stable or prerelease
-        if manifest_version in {last_version, prerelease_version}:
+        if manifest_version in [stable_version, prerelease_version]:
             return True
 
         # Mismatch - version is outdated
         warning_message = (
             f"<{self.repo}> Version mismatch: '{manifest_version}' "
-            f"(manifest) vs '{last_version}' (latest stable)"
+            f"(manifest) vs '{stable_version}' (latest stable)"
         )
         if prerelease_version:
             warning_message += f", '{prerelease_version}' (prerelease)"
         logging.warning(warning_message)
         return False
 
-    async def fetch_releases(self, github: GitHubAPI) -> tuple[str | None, str | None]:
-        """Fetch the latest release tag from GitHub.
-
-        Args:
-        ----
-            github: GitHubAPI instance.
-
-        Returns:
-        -------
-            tuple[str | None, str | None]: Latest release and prerelease.
-
-        """
-        logging.info(f"<{self.repo}> Fetching releases")
-        try:
-            releases = await github.repos.releases.list(self.repo)
-            if releases.etag:
-                self.etag_release = releases.etag
-
-            if not releases.data:
-                logging.warning(f"<{self.repo}> No releases found")
-                return None, None
-
-            # Ensure releases are sorted by creation date (newest first)
-            sorted_releases = sorted(
-                releases.data, key=lambda r: r.created_at, reverse=True
-            )
-            # Extract latest stable and prerelease versions
-            latest_release = next(
-                (r.tag_name for r in sorted_releases if not r.prerelease), None
-            )
-            latest_prerelease = next(
-                (r.tag_name for r in sorted_releases if r.prerelease), None
-            )
-
-            logging.info(f"<{self.repo}> Latest stable release: {latest_release}")
-            if latest_prerelease:
-                logging.info(f"<{self.repo}> Latest prerelease: {latest_prerelease}")
-        except GitHubNotFoundException:
-            logging.warning(f"<{self.repo}> Zero github releases found")
-        except GitHubException:
-            logging.exception(f"<{self.repo}> Error fetching releases")
-        else:
-            return latest_release, latest_prerelease
-
-    async def fetch_metadata(self, github: GitHubAPI) -> dict | str | None:
+    async def fetch_metadata(self, github: GitHubAPI) -> dict | None:  # noqa: PLR0911
         """Fetch and update the plugin's metadata.
 
         Args:
@@ -268,57 +307,61 @@ class RotorHazardPlugin:
 
         Returns:
         -------
-            dict | str | None: Plugin metadata if successful, "archived" if archived,
+            dict | None: The plugin's metadata if successful,
+                if None plugin will be skipped.
 
         """
         try:
             logging.info(f"<{self.repo}> Fetching repository metadata")
-            repo_data = await github.repos.get(self.repo)
+            repo_fetched = await self.fetch_repository_info(github)
+            if not repo_fetched:
+                logging.error(f"<{self.repo}> Skipping due to missing repository data.")
+                return None
 
             # Check if the repository is archived
-            if repo_data.data.archived:
+            if self.repo_metadata.archived:
                 logging.error(f"<{self.repo}> Repository is archived")
-                return "archived"
+                return {self.repo: {"archived": True}}
 
             # Check if the repository has been renamed
-            full_name = repo_data.data.full_name
+            full_name = self.repo_metadata.full_name
             if full_name.lower() != self.repo.lower():
                 logging.error(
                     f"<{self.repo}> Repository has been renamed to '{full_name}'"
                 )
                 self.repo = full_name  # Update the repo name
 
-            # Fetch plugin domain
-            if not await self.get_plugin_domain(github):
+            if not await self.fetch_github_releases(github):
                 return None
 
+            # Fetch plugin domain and validate repository structure
+            if not await self.validate_plugin_repository(github):
+                return None
+            # Fetch manifest file and validate domain
+            if not await self.fetch_manifest_file(github):
+                return None
             # Validate domain and manifest
-            if not await self.validate_manifest_domain(github):
+            if not await self.validate_manifest_domain():
                 return None
-
-            # Fetch rest of the metadata
-            if repo_data.etag:
-                self.etag_repository = repo_data.etag
-            last_version, last_prerelease_version = await self.fetch_releases(github)
-
             # Validate manifest version against github releases
-            await self.validate_manifest_version(last_version, last_prerelease_version)
+            if not await self.validate_manifest_version():
+                return None
 
             self.metadata = {
                 "etag_release": self.etag_release,
                 "etag_repository": self.etag_repository,
                 "last_fetched": datetime.now(UTC).isoformat(),
-                "last_updated": repo_data.data.updated_at,
-                "last_version": last_version,
-                "open_issues": repo_data.data.open_issues_count,
+                "last_updated": self.repo_metadata.updated_at,
+                "last_version": self.latest_stable,
+                "open_issues": self.repo_metadata.open_issues_count,
                 "repository": self.repo,
-                "stargazers_count": repo_data.data.stargazers_count,
-                "topics": repo_data.data.topics,
+                "stargazers_count": self.repo_metadata.stargazers_count,
+                "topics": self.repo_metadata.topics,
             }
 
             # Add prerelease version if available
-            if last_prerelease_version:
-                self.metadata["last_prerelease"] = last_prerelease_version
+            if self.latest_prerelease:
+                self.metadata["last_prerelease"] = self.latest_prerelease
             self.metadata = dict(sorted(self.metadata.items()))
 
             # Add manifest-specific metadata
@@ -342,7 +385,7 @@ class RotorHazardPlugin:
             logging.exception(f"<{self.repo}> Error fetching repository metadata")
         else:
             logging.info(f"<{self.repo}> Metadata successfully generated")
-            return {repo_data.data.id: self.metadata}
+            return {self.repo_metadata.id: self.metadata}
 
 
 class MetadataGenerator:
@@ -443,22 +486,25 @@ class MetadataGenerator:
             results = await asyncio.gather(*tasks)
 
             for result in results:
-                if result == "archived":
-                    archived_plugins += 1
-                elif result:
-                    repo_id, metadata = next(iter(result.items()))
-                    plugin_data[repo_id] = metadata
-                    valid_repositories.append(metadata["repository"])
-                    # Check if the repository name was updated
-                    if (
-                        metadata["repository"]
-                        != self.repos_list[
-                            valid_repositories.index(metadata["repository"])
-                        ]
-                    ):
-                        renamed_plugins += 1
-                else:
+                if not result:
                     skipped_plugins += 1
+                    continue
+
+                repo_id, metadata = next(iter(result.items()))
+                if metadata.get("archived"):
+                    archived_plugins += 1
+                    continue
+
+                plugin_data[repo_id] = metadata
+                valid_repositories.append(metadata.get("repository"))
+
+                if (
+                    metadata.get("repository")
+                    != self.repos_list[
+                        valid_repositories.index(metadata.get("repository"))
+                    ]
+                ):
+                    renamed_plugins += 1
 
         # Save generated metadata to local JSON file
         self.save_filtered_json(f"{self.output_dir}/diff/after.json", plugin_data)
