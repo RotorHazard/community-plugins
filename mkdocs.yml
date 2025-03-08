@@ -1,0 +1,17 @@
+site_name: RH Community Plugins
+site_author: Klaas Schoute
+
+# Repository
+repo_name: community-plugins
+repo_url: https://github.com/rotorhazard/community-plugins
+edit_uri: edit/main/docs/
+
+# Theme
+theme:
+  name: material
+  language: en
+
+# Plugins
+plugins:
+  - search:
+      separator: '[\s\u200b\-_,:!=\[\]()"`/]+|\.(?!\d)|&[lg]t;|(?!\b)(?=[A-Z][a-z])'
