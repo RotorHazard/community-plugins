@@ -1,14 +1,8 @@
-"""Generate metadata for RH Community plugins."""
+"""Generate metadata for each RotorHazard community plugin."""
 
-import asyncio
 import base64
 import json
-import logging
-import os
-import sys
 from datetime import UTC, datetime
-from pathlib import Path
-from time import perf_counter
 
 from aiogithubapi import (
     GitHubAPI,
@@ -16,32 +10,14 @@ from aiogithubapi import (
     GitHubNotFoundException,
     GitHubRatelimitException,
 )
-
-# Loggin setup
-logging.addLevelName(logging.INFO, "")
-logging.addLevelName(logging.ERROR, "::error::")
-logging.addLevelName(logging.WARNING, "::warning::")
-logging.basicConfig(
-    level=logging.INFO,
-    format=" %(levelname)s %(message)s",
-    handlers=[logging.StreamHandler(sys.stdout)],
-)
-
-# GitHub API configuration
-GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
-PLUGIN_LIST_FILE = "plugins.json"
-OUTPUT_DIR = "output/plugin"
-COMPARE_IGNORE = ["last_fetched", "etag_release", "etag_repository"]
-
-# Create output directories
-Path(f"{OUTPUT_DIR}/diff").mkdir(parents=True, exist_ok=True)
+from const import LOGGER
 
 
 class PluginMetadataGenerator:
     """Generate metadata for each RotorHazard community plugin."""
 
     def __init__(self, repo: str) -> None:
-        """Initialize the plugin."""
+        """Initialize the plugin metadata generator."""
         self.repo = repo  # Full repository name (e.g., "owner/repo_name")
         self.domain = None
         self.metadata = {}
@@ -69,15 +45,15 @@ class PluginMetadataGenerator:
             self.repo = repo_response.data.full_name
             self.repo_metadata = repo_response.data
         except GitHubRatelimitException:
-            logging.error(  # noqa: TRY400
+            LOGGER.error(
                 f"<{self.repo}> GitHub rate limit exceeded! Please try again later."
             )
             return False
         except GitHubNotFoundException:
-            logging.warning(f"<{self.repo}> Repository not found")
+            LOGGER.warning(f"<{self.repo}> Repository not found")
             return False
         except GitHubException:
-            logging.exception(f"<{self.repo}> Error fetching repository info")
+            LOGGER.exception(f"<{self.repo}> Error fetching repository info")
             return False
         else:
             self.etag_repository = repo_response.etag
@@ -95,14 +71,13 @@ class PluginMetadataGenerator:
             bool: True if the releases are fetched successfully, False otherwise.
 
         """
-        logging.info(f"<{self.repo}> Fetching releases")
+        LOGGER.info(f"<{self.repo}> Fetching releases")
         try:
             releases = await github.repos.releases.list(self.repo)
             if releases.etag:
                 self.etag_release = releases.etag
-
             if not releases.data:
-                logging.warning(f"<{self.repo}> No releases found")
+                LOGGER.warning(f"<{self.repo}> No releases found")
                 return False
 
             # Ensure releases are sorted by creation date (newest first)
@@ -117,12 +92,12 @@ class PluginMetadataGenerator:
                 (r.tag_name for r in sorted_releases if r.prerelease), None
             )
         except GitHubException:
-            logging.exception(f"<{self.repo}> Error fetching releases")
+            LOGGER.exception(f"<{self.repo}> Error fetching releases")
+            return False
         else:
-            # log the latest stable and prerelease versions
-            logging.info(f"<{self.repo}> Latest stable release: {self.latest_stable}")
+            LOGGER.info(f"<{self.repo}> Latest stable release: {self.latest_stable}")
             if self.latest_prerelease:
-                logging.info(
+                LOGGER.info(
                     f"<{self.repo}> Latest pre-release: {self.latest_prerelease}"
                 )
             return True
@@ -145,18 +120,17 @@ class PluginMetadataGenerator:
             or self.repo_metadata.get("default_branch")
         )
         manifest_path = f"custom_plugins/{self.domain}/manifest.json"
-
         try:
             response = await github.repos.contents.get(
                 self.repo, manifest_path, ref=ref
             )
             content = base64.b64decode(response.data.content).decode("utf-8")
             self.manifest_data = json.loads(content)
-            logging.info(
+            LOGGER.info(
                 f"<{self.repo}> Successfully fetched manifest.json from '{ref}' branch"
             )
         except (GitHubNotFoundException, json.JSONDecodeError, GitHubException):
-            logging.exception(
+            LOGGER.exception(
                 f"<{self.repo}> File not found: '{manifest_path}' in '{ref}'"
             )
             return False
@@ -181,7 +155,7 @@ class PluginMetadataGenerator:
             or self.repo_metadata.get("default_branch")
         )
         try:
-            logging.info(f"<{self.repo}> Fetching plugin domain")
+            LOGGER.info(f"<{self.repo}> Fetching plugin domain")
             response = await github.repos.contents.get(
                 self.repo, etag=self.etag_repository, ref=ref
             )
@@ -196,7 +170,7 @@ class PluginMetadataGenerator:
                 None,
             )
             if not custom_plugins_folder:
-                logging.error(f"<{self.repo}> Missing `custom_plugins/` folder")
+                LOGGER.error(f"<{self.repo}> Missing `custom_plugins/` folder")
                 return False
 
             # Fetch the contens of the `custom_plugins/` folder
@@ -207,20 +181,21 @@ class PluginMetadataGenerator:
 
             # Ensure there is exactly one domain folder
             if len(subfolders) != 1:
-                logging.error(
+                LOGGER.error(
                     f"<{self.repo}> Expected one domain folder in "
                     f"`custom_plugins/`, found: {len(subfolders)}."
                 )
                 return False
 
-            # Get the domain folder name
             self.domain = subfolders[0].name
         except GitHubNotFoundException:
-            logging.warning(f"<{self.repo}> Repository not found")
+            LOGGER.warning(f"<{self.repo}> Repository not found")
+            return False
         except GitHubException:
-            logging.exception(f"<{self.repo}> Error fetching plugin domain")
+            LOGGER.exception(f"<{self.repo}> Error fetching plugin domain")
+            return False
         else:
-            logging.info(f"<{self.repo}> Found domain '{self.domain}'")
+            LOGGER.info(f"<{self.repo}> Found domain '{self.domain}'")
             return True
 
     async def validate_manifest_domain(self) -> bool:
@@ -233,14 +208,13 @@ class PluginMetadataGenerator:
         """
         # Check if the domain in manifest.json matches the folder name
         if self.manifest_data.get("domain") != self.domain:
-            logging.error(
+            LOGGER.error(
                 f"<{self.repo}> Domain mismatch: Folder "
                 f"'{self.domain}' vs Manifest '{self.manifest_data.get('domain')}'"
             )
             return False
-
-        # Domain matches
-        logging.info(
+        # Domain matches the folder name
+        LOGGER.info(
             f"<{self.repo}> Domain validated: '{self.domain}' matches manifest domain."
         )
         return True
@@ -255,16 +229,13 @@ class PluginMetadataGenerator:
         """
 
         def normalize_version(version: str | None) -> str | None:
-            """Remove 'v' prefix from version strings."""
             return version.lstrip("v") if version else None
 
-        logging.info(f"<{self.repo}> Validating manifest version")
+        LOGGER.info(f"<{self.repo}> Validating manifest version")
         manifest_version = self.manifest_data.get("version")
-
         stable_version = normalize_version(self.latest_stable)
         prerelease_version = normalize_version(self.latest_prerelease)
 
-        # If the version matches either stable or prerelease
         if manifest_version in [stable_version, prerelease_version]:
             return True
 
@@ -275,7 +246,7 @@ class PluginMetadataGenerator:
         )
         if prerelease_version:
             warning_message += f", '{prerelease_version}' (prerelease)"
-        logging.warning(warning_message)
+        LOGGER.warning(warning_message)
         return False
 
     async def fetch_metadata(self, github: GitHubAPI) -> dict | None:  # noqa: PLR0911
@@ -292,35 +263,35 @@ class PluginMetadataGenerator:
 
         """
         try:
-            logging.info(f"<{self.repo}> Fetching repository metadata")
+            LOGGER.info(f"<{self.repo}> Fetching repository metadata")
             repo_fetched = await self.fetch_repository_info(github)
             if not repo_fetched:
-                logging.error(f"<{self.repo}> Skipping due to missing repository data.")
+                LOGGER.error(f"<{self.repo}> Skipping due to missing repository data.")
                 return None
 
             # Check if the repository is archived
             if self.repo_metadata.archived:
-                logging.error(f"<{self.repo}> Repository is archived")
+                LOGGER.error(f"<{self.repo}> Repository is archived")
                 return {self.repo: {"archived": True}}
 
             # Check if the repository has been renamed
             full_name = self.repo_metadata.full_name
             if full_name.lower() != self.repo.lower():
-                logging.error(
+                LOGGER.error(
                     f"<{self.repo}> Repository has been renamed to '{full_name}'"
                 )
                 self.repo = full_name  # Update the repo name
 
+            # Fetch plugin domain and validate repository structure
             if not await self.fetch_github_releases(github):
                 return None
-
             # Fetch plugin domain and validate repository structure
             if not await self.validate_plugin_repository(github):
                 return None
             # Fetch manifest file and validate domain
             if not await self.fetch_manifest_file(github):
                 return None
-            # Validate domain and manifest
+            # Validate domain and manifest version
             if not await self.validate_manifest_domain():
                 return None
             # Validate manifest version against github releases
@@ -360,166 +331,11 @@ class PluginMetadataGenerator:
                 **self.metadata,
             }
         except GitHubNotFoundException:
-            logging.warning(f"<{self.repo}> Repository not found")
+            LOGGER.warning(f"<{self.repo}> Repository not found")
+            return None
         except GitHubException:
-            logging.exception(f"<{self.repo}> Error fetching repository metadata")
+            LOGGER.exception(f"<{self.repo}> Error fetching repository metadata")
+            return None
         else:
-            logging.info(f"<{self.repo}> Metadata successfully generated")
+            LOGGER.info(f"<{self.repo}> Metadata successfully generated")
             return {self.repo_metadata.id: self.metadata}
-
-
-class SummaryData:
-    """Summary data for metadata generation."""
-
-    def __init__(
-        self,
-        total: int,
-        valid: int,
-        archived: int,
-        renamed: int,
-        skipped: int,
-    ) -> None:
-        """Initialize the summary data."""
-        self.total = total
-        self.valid = valid
-        self.archived = archived
-        self.renamed = renamed
-        self.skipped = skipped
-
-
-class SummaryGenerator:
-    """Handles generating and saving metadata for all repositories."""
-
-    def __init__(self, plugin_file: str, output_dir: str) -> None:
-        """Initialize the metadata generator."""
-        self.plugin_file = Path(plugin_file)
-        self.output_dir = output_dir
-        self.repos_list = self.load_repos()
-
-    def load_repos(self) -> list[str]:
-        """Load repository list from the plugin file.
-
-        Returns
-        -------
-            list[str]: List of repositories.
-
-        """
-        if self.plugin_file.exists():
-            with Path.open(self.plugin_file, encoding="utf-8") as f:
-                return json.load(f)
-        else:
-            logging.warning("Plugin list file not found. Using an empty list.")
-            return []
-
-    def save_filtered_json(self, filepath: str, data: dict) -> None:
-        """Save data to a JSON file with filtered keys.
-
-        Args:
-        ----
-            filepath: Path to the output JSON file.
-            data: Data to be saved.
-
-        """
-        filtered_data = {
-            key: {k: v for k, v in value.items() if k not in COMPARE_IGNORE}
-            for key, value in data.items()
-        }
-        with Path.open(filepath, "w", encoding="utf-8") as f:
-            json.dump(filtered_data, f, indent=2)
-
-    def save_json(self, filepath: str, data: dict) -> None:
-        """Save data to a JSON file.
-
-        Args:
-        ----
-            filepath: Path to the output JSON file.
-            data: Data to be saved.
-
-        """
-        with Path.open(filepath, "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=2)
-
-    async def summarize_results(
-        self,
-        summary_data: SummaryData,
-        start_time: float,
-    ) -> None:
-        """Summarize the generation results.
-
-        Args:
-        ----
-            total: Total number of repositories.
-            summary_data: An instance of SummaryData containing summary data.
-            start_time: Time when the generation started.
-
-        """
-        end_time = perf_counter()
-        elapsed_time = end_time - start_time
-
-        summary = {
-            "total_plugins": summary_data.total,
-            "valid_plugins": summary_data.valid,
-            "archived_plugins": summary_data.archived,
-            "renamed_plugins": summary_data.renamed,
-            "skipped_plugins": summary_data.skipped,
-            "execution_time_seconds": round(elapsed_time, 2),
-        }
-        summary_path = f"{self.output_dir}/summary.json"
-        self.save_json(summary_path, summary)
-
-    async def generate(self) -> None:
-        """Generate metadata for all repositories."""
-        plugin_data: dict[str, dict] = {}
-        valid_repositories: list[str] = []
-        skipped_plugins = 0
-        archived_plugins = 0
-        renamed_plugins = 0
-
-        start_time = perf_counter()
-
-        async with GitHubAPI(token=GITHUB_TOKEN) as github:
-            tasks = [
-                PluginMetadataGenerator(repo).fetch_metadata(github)
-                for repo in self.repos_list
-            ]
-            results = await asyncio.gather(*tasks)
-
-            for result in results:
-                if not result:
-                    skipped_plugins += 1
-                    continue
-
-                repo_id, metadata = next(iter(result.items()))
-                if metadata.get("archived"):
-                    archived_plugins += 1
-                    continue
-
-                plugin_data[repo_id] = metadata
-                valid_repositories.append(metadata.get("repository"))
-
-                if (
-                    metadata.get("repository")
-                    != self.repos_list[
-                        valid_repositories.index(metadata.get("repository"))
-                    ]
-                ):
-                    renamed_plugins += 1
-
-        # Save generated metadata to local JSON file
-        self.save_filtered_json(f"{self.output_dir}/diff/after.json", plugin_data)
-        self.save_json(f"{self.output_dir}/data.json", plugin_data)
-        self.save_json(f"{self.output_dir}/repositories.json", valid_repositories)
-
-        # Summarize the results
-        summary_data = SummaryData(
-            total=len(self.repos_list),
-            valid=len(valid_repositories),
-            archived=archived_plugins,
-            renamed=renamed_plugins,
-            skipped=skipped_plugins,
-        )
-        await self.summarize_results(summary_data, start_time)
-
-
-if __name__ == "__main__":
-    asyncio.run(SummaryGenerator(PLUGIN_LIST_FILE, OUTPUT_DIR).generate())
