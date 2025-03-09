@@ -140,7 +140,7 @@ class PluginMetadataGenerator:
             )
         except (GitHubNotFoundException, json.JSONDecodeError, GitHubException):
             LOGGER.exception(
-                f"<{self.repo}> Failed to fetch manifest.json from {self.used_ref}."
+                f"<{self.repo}> Failed to fetch `{manifest_path}` from {self.used_ref}."
             )
             return False
         return True
