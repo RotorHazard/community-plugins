@@ -10,7 +10,7 @@ from aiogithubapi import (
     GitHubNotFoundException,
     GitHubRatelimitException,
 )
-from const import LOGGER
+from const import EXCLUDED_KEYS, LOGGER
 
 
 class PluginMetadataGenerator:
@@ -27,6 +27,15 @@ class PluginMetadataGenerator:
         self.etag_release = None
         self.latest_stable = None
         self.latest_prerelease = None
+
+    @property
+    def used_ref(self) -> str:
+        """Return the reference used for fetching repository data."""
+        return (
+            self.latest_prerelease
+            or self.latest_stable
+            or self.repo_metadata.get("default_branch")
+        )
 
     async def fetch_repository_info(self, github: GitHubAPI) -> bool:
         """Fetch and store repository metadata from GitHub.
@@ -114,24 +123,20 @@ class PluginMetadataGenerator:
             bool: True if the manifest file is fetched successfully, False otherwise.
 
         """
-        ref = (
-            self.latest_prerelease
-            or self.latest_stable
-            or self.repo_metadata.get("default_branch")
-        )
         manifest_path = f"custom_plugins/{self.domain}/manifest.json"
         try:
             response = await github.repos.contents.get(
-                self.repo, manifest_path, ref=ref
+                self.repo, manifest_path, ref=self.used_ref
             )
             content = base64.b64decode(response.data.content).decode("utf-8")
             self.manifest_data = json.loads(content)
             LOGGER.info(
-                f"<{self.repo}> Successfully fetched manifest.json from '{ref}' branch"
+                f"<{self.repo}> Successfully fetched manifest.json "
+                f"from '{self.used_ref}' branch"
             )
         except (GitHubNotFoundException, json.JSONDecodeError, GitHubException):
             LOGGER.exception(
-                f"<{self.repo}> File not found: '{manifest_path}' in '{ref}'"
+                f"<{self.repo}> File not found: '{manifest_path}' in '{self.used_ref}'"
             )
             return False
         else:
@@ -149,15 +154,10 @@ class PluginMetadataGenerator:
             bool: True if the plugin domain is fetched successfully, False otherwise.
 
         """
-        ref = (
-            self.latest_prerelease
-            or self.latest_stable
-            or self.repo_metadata.get("default_branch")
-        )
         try:
             LOGGER.info(f"<{self.repo}> Fetching plugin domain")
             response = await github.repos.contents.get(
-                self.repo, etag=self.etag_repository, ref=ref
+                self.repo, etag=self.etag_repository, ref=self.used_ref
             )
 
             # Check for `custom_plugins/` folder
@@ -308,6 +308,7 @@ class PluginMetadataGenerator:
                 "repository": self.repo,
                 "stargazers_count": self.repo_metadata.stargazers_count,
                 "topics": self.repo_metadata.topics,
+                "used_ref": self.used_ref,
             }
 
             # Add prerelease version if available
@@ -318,16 +319,12 @@ class PluginMetadataGenerator:
             # Add manifest-specific metadata
             self.metadata = {
                 "manifest": {
-                    "name": self.manifest_data.get("name"),
-                    "description": self.manifest_data.get("description"),
-                    "category": self.manifest_data.get("category"),
                     **{
-                        key: self.manifest_data[key]
-                        for key in ["documentation_uri", "dependencies", "zip_filename"]
-                        if key in self.manifest_data
+                        key: value
+                        for key, value in self.manifest_data.items()
+                        if key not in EXCLUDED_KEYS
                     },
                 },
-                "domain": self.domain,
                 **self.metadata,
             }
         except GitHubNotFoundException:

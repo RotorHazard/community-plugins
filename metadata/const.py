@@ -8,7 +8,8 @@ from pathlib import Path
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
 PLUGIN_LIST_FILE = "plugins.json"
 OUTPUT_DIR = "output/plugin"
-COMPARE_IGNORE = ["last_fetched", "etag_release", "etag_repository"]
+COMPARE_IGNORE: list[str] = ["last_fetched", "etag_release", "etag_repository"]
+EXCLUDED_KEYS: list[str] = []
 
 # Loggin setup
 logging.addLevelName(logging.INFO, "")
