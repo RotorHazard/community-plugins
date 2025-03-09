@@ -42,7 +42,7 @@ jobs:
 
       - name: 🏗 Generate metadata
         run: |
-          uv run python scripts/generate_metadata.py
+          uv run python metadata/main.py
           mv ./output/plugin/diff/ ./output/diff/
           mv ./output/plugin/summary.json ./output/summary.json
         env:

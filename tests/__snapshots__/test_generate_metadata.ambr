@@ -2,7 +2,7 @@
 # name: test_metadata_generator
   dict({
     'archived_plugins': 0,
-    'execution_time_seconds': 0.04,
+    'execution_time_seconds': 1.23,
     'renamed_plugins': 0,
     'skipped_plugins': 2,
     'total_plugins': 2,
