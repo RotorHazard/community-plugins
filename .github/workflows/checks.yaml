@@ -102,7 +102,7 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.CF_R2_SECRET_ACCESS_KEY }}
 
       - name: 🚀 Run validation
-        run: uv run python scripts/check/removed.py --data-file repositories.json
+        run: uv run python scripts/check_removed.py --data-file repositories.json
         env:
           REPOSITORY: ${{ needs.preflight.outputs.repository }}
 
