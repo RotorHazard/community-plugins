@@ -34,7 +34,7 @@ class PluginMetadataGenerator:
         return (
             self.latest_prerelease
             or self.latest_stable
-            or self.repo_metadata.get("default_branch")
+            or self.repo_metadata.default_branch
         )
 
     async def fetch_repository_info(self, github: GitHubAPI) -> bool:
@@ -126,10 +126,11 @@ class PluginMetadataGenerator:
         manifest_path = f"custom_plugins/{self.domain}/manifest.json"
         try:
             response = await github.repos.contents.get(
-                self.repo, manifest_path, ref=self.used_ref
+                self.repo, f"{manifest_path}?ref={self.used_ref}"
             )
             content = base64.b64decode(response.data.content).decode("utf-8")
             self.manifest_data = json.loads(content)
+
             LOGGER.info(
                 f"<{self.repo}> Successfully fetched manifest.json "
                 f"from '{self.used_ref}' branch"
@@ -143,7 +144,7 @@ class PluginMetadataGenerator:
             return True
 
     async def validate_plugin_repository(self, github: GitHubAPI) -> bool:
-        """Fetch the plugin domain and validate the repository structure.
+        """Fetch the plugin domain folder and validate the repository structure.
 
         Args:
         ----
@@ -157,7 +158,7 @@ class PluginMetadataGenerator:
         try:
             LOGGER.info(f"<{self.repo}> Fetching plugin domain")
             response = await github.repos.contents.get(
-                self.repo, etag=self.etag_repository, ref=self.used_ref
+                self.repo, f"?ref={self.used_ref}"
             )
 
             # Check for `custom_plugins/` folder
@@ -175,7 +176,7 @@ class PluginMetadataGenerator:
 
             # Fetch the contens of the `custom_plugins/` folder
             folder_response = await github.repos.contents.get(
-                self.repo, "custom_plugins"
+                self.repo, f"custom_plugins?ref={self.used_ref}"
             )
             subfolders = [item for item in folder_response.data if item.type == "dir"]
 

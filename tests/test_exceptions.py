@@ -2,6 +2,7 @@
 
 import base64
 import json
+from datetime import UTC, datetime
 from unittest.mock import AsyncMock
 
 import pytest
@@ -12,7 +13,7 @@ from aiogithubapi import (
 from metadata.plugin_metadata_generator import PluginMetadataGenerator
 
 from . import load_fixture
-from .conftest import MockGitHubResponse
+from .conftest import MockGitHubResponse, MockRepo
 
 
 @pytest.mark.asyncio
@@ -57,7 +58,6 @@ async def test_fetch_manifest_file_json_decode_error(
     async def get_bad_manifest(
         repo_name: str,
         path: str,
-        ref: str | None = None,
         etag: str | None = None,
     ) -> MockGitHubResponse:
         content = base64.b64encode(b"not a json").decode("utf-8")
@@ -66,6 +66,11 @@ async def test_fetch_manifest_file_json_decode_error(
 
     monkeypatch.setattr(mock_github.repos.contents, "get", get_bad_manifest)
     plugin = PluginMetadataGenerator("owner/repo")
+    plugin.repo_metadata = MockRepo(
+        full_name="owner/repo",
+        default_branch="main",
+        updated_at=datetime(2025, 3, 9, tzinfo=UTC).isoformat(),
+    )
     result = await plugin.fetch_manifest_file(mock_github)
     assert result is False
 
@@ -80,13 +85,17 @@ async def test_fetch_manifest_file_not_found(
     async def get_raise(
         repo_name: str,
         path: str,
-        ref: str | None = None,
         etag: str | None = None,
     ) -> None:
         raise GitHubNotFoundException("Manifest file not found")
 
     monkeypatch.setattr(mock_github.repos.contents, "get", get_raise)
     plugin = PluginMetadataGenerator("owner/repo")
+    plugin.repo_metadata = MockRepo(
+        full_name="owner/repo",
+        default_branch="main",
+        updated_at=datetime(2025, 3, 9, tzinfo=UTC).isoformat(),
+    )
     result = await plugin.fetch_manifest_file(mock_github)
     assert result is False
 
@@ -102,18 +111,17 @@ async def test_validate_manifest_domain_exception(
     async def get_manifest(
         repo_name: str,
         path: str = "",
-        ref: str | None = None,
-        etag: str | None = None,
     ) -> MockGitHubResponse:
         if not path:
             path = "custom_plugins"
-        if path == "custom_plugins/testdomain/manifest.json":
+        base_path = path.split("?", 1)[0]
+        if base_path == "custom_plugins/testdomain/manifest.json":
             content = base64.b64encode(
                 json.dumps(load_fixture("wrong_domain_manifest.json")).encode("utf-8")
             ).decode("utf-8")
             file_data = type("Data", (), {"content": content})
             return MockGitHubResponse(data=file_data, etag="mock_manifest_etag")
-        return await original_get(repo_name, path, ref, etag)
+        return await original_get(repo_name, path)
 
     monkeypatch.setattr(mock_github.repos.contents, "get", get_manifest)
 

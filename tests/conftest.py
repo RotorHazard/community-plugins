@@ -27,6 +27,7 @@ class MockRepo:
 
     full_name: str
     archived: bool = False
+    default_branch: str = "main"
     updated_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
     open_issues_count: int = 0
     stargazers_count: int = 10
@@ -55,6 +56,7 @@ def create_mock_repos(
         data=MockRepo(
             full_name="owner/repo",
             archived=False,
+            default_branch="main",
             updated_at=datetime.now(UTC).isoformat(),
             open_issues_count=5,
             stargazers_count=100,
@@ -76,7 +78,6 @@ def mock_repos_releases() -> MagicMock:
 
     async def list_releases(repo_name: str) -> MockGitHubResponse:
         now = datetime.now(UTC)
-        # Eerst een prerelease en daarna een stabiele release
         stable = MockRelease("v1.0.1", False, now - timedelta(days=1))  # noqa: FBT003
         prerelease = MockRelease("v1.0.2-beta", True, now)  # noqa: FBT003
         return MockGitHubResponse(data=[prerelease, stable], etag="mock_release_etag")
@@ -91,27 +92,27 @@ def mock_repos_contents() -> MagicMock:
     async def get_contents(
         repo_name: str,
         path: str = "custom_plugins",
-        ref: str | None = None,
-        etag: str | None = None,
     ) -> MockGitHubResponse:
+        base_path = path.split("?", 1)[0].strip()
+
         # Define a dataclass for the folder item
         @dataclass
         class FolderItem:
             name: str
             type: str
 
-        if path == "custom_plugins":
-            if ref is not None:
-                return MockGitHubResponse(data=[FolderItem("custom_plugins", "dir")])
+        if base_path == "" or base_path.startswith("?"):
+            return MockGitHubResponse(data=[FolderItem("custom_plugins", "dir")])
+        if base_path == "custom_plugins":
             return MockGitHubResponse(data=[FolderItem("testdomain", "dir")])
-        if path == "custom_plugins/testdomain/manifest.json":
-            # Bouw de response voor het manifest bestand
+        if base_path == "custom_plugins/testdomain/manifest.json":
             content = base64.b64encode(
                 json.dumps(load_fixture("manifest_data.json")).encode("utf-8")
             ).decode("utf-8")
             file_data = type("Data", (), {"content": content})
             return MockGitHubResponse(data=file_data, etag="mock_manifest_etag")
-        raise Exception("File not found")  # noqa: TRY002
+        file_data = type("Data", (), {"content": ""})
+        return MockGitHubResponse(data=file_data, etag="mock_etag")
 
     return AsyncMock(side_effect=get_contents)
 

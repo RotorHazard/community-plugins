@@ -72,16 +72,16 @@ async def test_manifest_domain_mismatch(
     async def wrong_manifest_get(
         repo_name: str,
         path: str = "custom_plugins",
-        ref: str | None = None,
-        etag: str | None = None,
     ) -> MockGitHubResponse:
-        if path == "custom_plugins/testdomain/manifest.json":
+        if not path:
+            path = "custom_plugins"
+        if path.split("?", 1)[0] == "custom_plugins/testdomain/manifest.json":
             content = base64.b64encode(
                 json.dumps(load_fixture("wrong_domain_manifest.json")).encode("utf-8")
             ).decode("utf-8")
             file_data = type("Data", (), {"content": content})
             return MockGitHubResponse(data=file_data, etag="mock_manifest_etag")
-        return await original_get(repo_name, path, ref, etag)
+        return await original_get(repo_name, path)
 
     monkeypatch.setattr(mock_github.repos.contents, "get", wrong_manifest_get)
     plugin = PluginMetadataGenerator("owner/repo")
@@ -106,16 +106,16 @@ async def test_manifest_version_mismatch(
     async def wrong_version_get(
         repo_name: str,
         path: str = "custom_plugins",
-        ref: str | None = None,
-        etag: str | None = None,
     ) -> MockGitHubResponse:
-        if path == "custom_plugins/testdomain/manifest.json":
+        if not path:
+            path = "custom_plugins"
+        if path.split("?", 1)[0] == "custom_plugins/testdomain/manifest.json":
             content = base64.b64encode(
                 json.dumps(load_fixture("wrong_version_manifest.json")).encode("utf-8")
             ).decode("utf-8")
             file_data = type("Data", (), {"content": content})
             return MockGitHubResponse(data=file_data, etag="mock_manifest_etag")
-        return await original_get(repo_name, path, ref, etag)
+        return await original_get(repo_name, path)
 
     monkeypatch.setattr(mock_github.repos.contents, "get", wrong_version_get)
     plugin = PluginMetadataGenerator("owner/repo")
