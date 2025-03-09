@@ -11,7 +11,6 @@
 # ---
 # name: test_rotorhazard_plugin_success
   dict({
-    'domain': 'testdomain',
     'etag_release': 'mock_release_etag',
     'etag_repository': 'mock_repo_etag',
     'last_fetched': '2025-03-09T14:00:00+00:00',
@@ -24,7 +23,9 @@
       ]),
       'description': 'A test plugin',
       'documentation_uri': 'http://example.com',
+      'domain': 'testdomain',
       'name': 'Test Plugin',
+      'version': '1.0.1',
       'zip_filename': 'plugin.zip',
     }),
     'open_issues': 5,
@@ -34,5 +35,6 @@
       'python',
       'plugin',
     ]),
+    'used_ref': 'v1.0.2-beta',
   })
 # ---

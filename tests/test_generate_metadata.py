@@ -28,7 +28,7 @@ async def test_rotorhazard_plugin_success(
     repo_id, data = next(iter(metadata.items()))
     assert "manifest" in data
     assert data["manifest"]["name"] == "Test Plugin"
-    assert data["domain"] == "testdomain"
+    assert data["manifest"]["domain"] == "testdomain"
 
     snapshot.assert_match(data)
 
