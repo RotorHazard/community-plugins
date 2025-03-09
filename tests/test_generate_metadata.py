@@ -7,7 +7,8 @@ from pathlib import Path
 from unittest.mock import AsyncMock
 
 import pytest
-from scripts.generate_metadata import PluginMetadataGenerator, SummaryGenerator
+from metadata.plugin_metadata_generator import PluginMetadataGenerator
+from metadata.summary_generator import SummaryGenerator
 from syrupy.assertion import SnapshotAssertion
 
 from . import load_fixture
@@ -143,8 +144,12 @@ async def test_metadata_generator(
 
     # Patch the GitHubAPI class to return the mock_github instance
     monkeypatch.setattr("aiogithubapi.GitHubAPI", AsyncMock(return_value=mock_github))
+    fake_perf_calls = iter([100.0, 101.23])
+    monkeypatch.setattr(
+        "metadata.summary_generator.perf_counter", lambda: next(fake_perf_calls)
+    )
     summary = SummaryGenerator(str(plugins_file), str(output_dir))
-    await summary.generate()
+    await summary.generate("test_token")
 
     # Check if the output files are created
     data_file = output_dir / "data.json"
@@ -161,4 +166,6 @@ async def test_metadata_generator(
     assert isinstance(data, dict)
     assert isinstance(repos, list)
     assert "total_plugins" in summary
+
+    assert summary.get("execution_time_seconds") == round(1.23, 2)
     snapshot.assert_match(summary)

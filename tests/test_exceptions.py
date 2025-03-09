@@ -9,7 +9,7 @@ from aiogithubapi import (
     GitHubNotFoundException,
     GitHubRatelimitException,
 )
-from scripts.generate_metadata import PluginMetadataGenerator
+from metadata.plugin_metadata_generator import PluginMetadataGenerator
 
 from . import load_fixture
 from .conftest import MockGitHubResponse
