@@ -37,27 +37,8 @@ COMPARE_IGNORE = ["last_fetched", "etag_release", "etag_repository"]
 Path(f"{OUTPUT_DIR}/diff").mkdir(parents=True, exist_ok=True)
 
 
-class SummaryData:
-    """Summary data for metadata generation."""
-
-    def __init__(
-        self,
-        total: int,
-        valid: int,
-        archived: int,
-        renamed: int,
-        skipped: int,
-    ) -> None:
-        """Initialize the summary data."""
-        self.total = total
-        self.valid = valid
-        self.archived = archived
-        self.renamed = renamed
-        self.skipped = skipped
-
-
-class RotorHazardPlugin:
-    """Handles fetching metdata for a RotorHazard plugin."""
+class PluginMetadataGenerator:
+    """Generate metadata for each RotorHazard community plugin."""
 
     def __init__(self, repo: str) -> None:
         """Initialize the plugin."""
@@ -161,7 +142,7 @@ class RotorHazardPlugin:
         ref = (
             self.latest_prerelease
             or self.latest_stable
-            or self.repo_metadata.default_branch
+            or self.repo_metadata.get("default_branch")
         )
         manifest_path = f"custom_plugins/{self.domain}/manifest.json"
 
@@ -169,9 +150,8 @@ class RotorHazardPlugin:
             response = await github.repos.contents.get(
                 self.repo, manifest_path, ref=ref
             )
-            self.manifest_data = json.loads(
-                base64.b64decode(response.data.content).decode("utf-8")
-            )
+            content = base64.b64decode(response.data.content).decode("utf-8")
+            self.manifest_data = json.loads(content)
             logging.info(
                 f"<{self.repo}> Successfully fetched manifest.json from '{ref}' branch"
             )
@@ -198,7 +178,7 @@ class RotorHazardPlugin:
         ref = (
             self.latest_prerelease
             or self.latest_stable
-            or self.repo_metadata.default_branch
+            or self.repo_metadata.get("default_branch")
         )
         try:
             logging.info(f"<{self.repo}> Fetching plugin domain")
@@ -388,7 +368,26 @@ class RotorHazardPlugin:
             return {self.repo_metadata.id: self.metadata}
 
 
-class MetadataGenerator:
+class SummaryData:
+    """Summary data for metadata generation."""
+
+    def __init__(
+        self,
+        total: int,
+        valid: int,
+        archived: int,
+        renamed: int,
+        skipped: int,
+    ) -> None:
+        """Initialize the summary data."""
+        self.total = total
+        self.valid = valid
+        self.archived = archived
+        self.renamed = renamed
+        self.skipped = skipped
+
+
+class SummaryGenerator:
     """Handles generating and saving metadata for all repositories."""
 
     def __init__(self, plugin_file: str, output_dir: str) -> None:
@@ -468,7 +467,7 @@ class MetadataGenerator:
         summary_path = f"{self.output_dir}/summary.json"
         self.save_json(summary_path, summary)
 
-    async def generate_metadata(self) -> None:
+    async def generate(self) -> None:
         """Generate metadata for all repositories."""
         plugin_data: dict[str, dict] = {}
         valid_repositories: list[str] = []
@@ -480,7 +479,7 @@ class MetadataGenerator:
 
         async with GitHubAPI(token=GITHUB_TOKEN) as github:
             tasks = [
-                RotorHazardPlugin(repo).fetch_metadata(github)
+                PluginMetadataGenerator(repo).fetch_metadata(github)
                 for repo in self.repos_list
             ]
             results = await asyncio.gather(*tasks)
@@ -523,4 +522,4 @@ class MetadataGenerator:
 
 
 if __name__ == "__main__":
-    asyncio.run(MetadataGenerator(PLUGIN_LIST_FILE, OUTPUT_DIR).generate_metadata())
+    asyncio.run(SummaryGenerator(PLUGIN_LIST_FILE, OUTPUT_DIR).generate())

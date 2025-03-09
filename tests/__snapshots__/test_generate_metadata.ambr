@@ -1,0 +1,38 @@
+# serializer version: 1
+# name: test_metadata_generator
+  dict({
+    'archived_plugins': 0,
+    'execution_time_seconds': 0.04,
+    'renamed_plugins': 0,
+    'skipped_plugins': 2,
+    'total_plugins': 2,
+    'valid_plugins': 0,
+  })
+# ---
+# name: test_rotorhazard_plugin_success
+  dict({
+    'domain': 'testdomain',
+    'etag_release': 'mock_release_etag',
+    'etag_repository': 'mock_repo_etag',
+    'last_fetched': '2025-03-09T14:00:00+00:00',
+    'last_prerelease': 'v1.0.2-beta',
+    'last_updated': '2025-03-09T14:00:00+00:00',
+    'last_version': 'v1.0.1',
+    'manifest': dict({
+      'category': 'test',
+      'dependencies': list([
+      ]),
+      'description': 'A test plugin',
+      'documentation_uri': 'http://example.com',
+      'name': 'Test Plugin',
+      'zip_filename': 'plugin.zip',
+    }),
+    'open_issues': 5,
+    'repository': 'owner/repo',
+    'stargazers_count': 100,
+    'topics': list([
+      'python',
+      'plugin',
+    ]),
+  })
+# ---
