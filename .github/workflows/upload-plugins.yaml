@@ -110,7 +110,7 @@ jobs:
 
   publish:
     name: Publish RHCS data
-    needs: summarize
+    needs: generate-metadata
     runs-on: ubuntu-latest
     environment:
       name: plugin
