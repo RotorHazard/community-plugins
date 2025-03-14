@@ -61,3 +61,15 @@ nav:
     - docs/add/remove.md
   - RHFest Action:
     - docs/rhfest/index.md
+
+# Extra
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/RotorHazard
+    - icon: fontawesome/brands/discord
+      link: https://discord.gg/ANKd2pzBKH
+    - icon: fontawesome/brands/youtube
+      link: https://www.youtube.com/@RotorHazard
+    - icon: fontawesome/brands/facebook
+      link: https://www.facebook.com/groups/rotorhazard
