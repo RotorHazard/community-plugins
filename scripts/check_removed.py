@@ -16,6 +16,7 @@ logging.basicConfig(
     format=" %(levelname)s %(message)s",
     handlers=[logging.StreamHandler(sys.stdout)],
 )
+LOGGER = logging.getLogger(__name__)
 
 
 def check_removed_repository(repo: str, data_file: str) -> None:
@@ -32,16 +33,16 @@ def check_removed_repository(repo: str, data_file: str) -> None:
             removed_plugins = json.load(file)
 
         if repo in removed_plugins:
-            logging.warning(f"⚠️ '{repo}' is removed from the RH Community Plugins DB.")
+            LOGGER.warning(f"⚠️ '{repo}' is removed from the RH Community Plugins DB.")
             sys.exit(1)
     except FileNotFoundError:
-        logging.exception(f"::error::Could not find {data_file}. Ensure it exists.")
+        LOGGER.exception(f"::error::Could not find {data_file}. Ensure it exists.")
     except json.JSONDecodeError:
-        logging.exception(f"::error::Invalid JSON format in {data_file}")
+        LOGGER.exception(f"::error::Invalid JSON format in {data_file}")
     except Exception:
-        logging.exception("Unexpected error occurred")
+        LOGGER.exception("Unexpected error occurred")
     else:
-        logging.info(f"✅ '{repo}' is not removed from the RH Community Plugins DB.")
+        LOGGER.info(f"✅ '{repo}' is not removed from the RH Community Plugins DB.")
 
 
 if __name__ == "__main__":
@@ -57,6 +58,6 @@ if __name__ == "__main__":
 
     repo = os.environ.get("REPOSITORY").lower()
     if not repo:
-        logging.error("'REPOSITORY' environment variable is not set or empty.")
+        LOGGER.error("'REPOSITORY' environment variable is not set or empty.")
 
     check_removed_repository(repo, args.data_file)
