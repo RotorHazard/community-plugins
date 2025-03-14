@@ -15,6 +15,7 @@ logging.basicConfig(
     format=" %(levelname)s %(message)s",
     handlers=[logging.StreamHandler(sys.stdout)],
 )
+LOGGER = logging.getLogger(__name__)
 
 
 def sort_json(  # noqa: PLR0911
@@ -45,7 +46,7 @@ def sort_json(  # noqa: PLR0911
         elif isinstance(data, dict):
             sorted_data = {k: data[k] for k in sorted(data)}
         else:
-            logging.warning(
+            LOGGER.warning(
                 f"⚠️ Invalid format in {file_path}: Only lists and dicts are supported."
             )
             return False
@@ -53,9 +54,9 @@ def sort_json(  # noqa: PLR0911
         if check_only:
             # Validate if the file is sorted
             if data != sorted_data:
-                logging.error(f"❌ {file_path} is not sorted.")
+                LOGGER.error(f"❌ {file_path} is not sorted.")
                 return False
-            logging.info(f"✅ {file_path} is already sorted.")
+            LOGGER.info(f"✅ {file_path} is already sorted.")
             return True
 
         # Write sorted data to file
@@ -63,14 +64,14 @@ def sort_json(  # noqa: PLR0911
             with Path.open(file_path, "w") as file:
                 json.dump(sorted_data, file, indent=2)
                 file.write("\n")  # Add newline at the end of the file
-            logging.info(f"🧹 {file_path} has been sorted.")
+            LOGGER.info(f"🧹 {file_path} has been sorted.")
             return True
-        logging.info(f"✅ {file_path} was already sorted. No changes made.")
+        LOGGER.info(f"✅ {file_path} was already sorted. No changes made.")
     except json.JSONDecodeError:
-        logging.exception(f"❌ Invalid JSON in {file_path}")
+        LOGGER.exception(f"❌ Invalid JSON in {file_path}")
         return False
     except Exception:
-        logging.exception(f"❌ Could not process {file_path}")
+        LOGGER.exception(f"❌ Could not process {file_path}")
         return False
     else:
         return True
@@ -89,7 +90,7 @@ def main() -> None:
     for file in args.files:
         file_path = Path(file)
         if not file_path.exists():
-            logging.error(f"❌ File not found: {file}")
+            LOGGER.error(f"❌ File not found: {file}")
             all_sorted = False
             continue
 
