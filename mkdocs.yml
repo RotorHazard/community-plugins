@@ -61,6 +61,8 @@ nav:
     - docs/add/remove.md
   - RHFest Action:
     - docs/rhfest/index.md
+  - Help:
+    - docs/help/index.md
 
 # Extra
 extra:
