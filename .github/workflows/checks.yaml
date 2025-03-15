@@ -75,6 +75,28 @@ jobs:
             exit 1
           fi
 
+  releases:
+    name: Release validation
+    if: ${{ needs.preflight.outputs.action == 'add' }}
+    needs: preflight
+    runs-on: ubuntu-latest
+    steps:
+      - name: ⤵️ Check out code
+        uses: actions/checkout@v4.2.2
+
+      - name: 🏗 Set up UV
+        uses: astral-sh/setup-uv@v5.3.1
+        with:
+          version: "latest"
+          python-version: ${{ env.DEFAULT_PYTHON }}
+          enable-cache: true
+
+      - name: 🏗 Install project dependencies
+        run: uv sync --no-group dev
+
+      - name: 🚀 Run validation
+        run: uv run python scripts/check_releases.py --repository="${{ needs.preflight.outputs.repository }}"
+
   removed:
     name: Removed validation
     if: ${{ needs.preflight.outputs.action == 'add' }}
