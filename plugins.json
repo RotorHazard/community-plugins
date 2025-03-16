@@ -1,4 +1,7 @@
 [
   "dutchdronesquad/rh-stream-overlays",
-  "dutchdronesquad/rh-youtube-chapters"
+  "dutchdronesquad/rh-youtube-chapters",
+  "L1cardo/RH-Pilot-Local-Importer",
+  "L1cardo/RH-Pilot-CSV-Importer",
+  "L1cardo/RH-Last-Race-Exporter"
 ]
