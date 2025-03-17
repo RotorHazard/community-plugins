@@ -53,16 +53,34 @@ plugins:
 
 nav:
   - Home: index.md
-  - Add Plugin:
-    - docs/add/index.md
-    - docs/add/general.md
+  - Plugin Database:
+    - Getting started:
+      - docs/add/index.md
     - docs/add/include.md
-    - docs/add/plugin.md
     - docs/add/remove.md
   - RHFest Action:
     - docs/rhfest/index.md
   - Help:
     - docs/help/index.md
+
+# Markdown extensions
+markdown_extensions:
+  - attr_list
+  - md_in_html
+  - admonition
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.superfences
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.details
+  - pymdownx.mark
+  - toc:
+      permalink: true
 
 # Extra
 extra:
