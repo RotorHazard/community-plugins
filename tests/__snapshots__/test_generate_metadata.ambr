@@ -11,10 +11,10 @@
 # ---
 # name: test_rotorhazard_plugin_success
   dict({
-    'etag_release': 'mock_release_etag',
+    'etag_release': 'mock_releases_etag',
     'etag_repository': 'mock_repo_etag',
     'last_fetched': '2025-03-09T14:00:00+00:00',
-    'last_prerelease': 'v1.0.2-beta',
+    'last_prerelease': 'v1.0.0-beta',
     'last_updated': '2025-03-09T14:00:00+00:00',
     'last_version': 'v1.0.1',
     'manifest': dict({
@@ -35,6 +35,6 @@
       'python',
       'plugin',
     ]),
-    'used_ref': 'v1.0.2-beta',
+    'used_ref': 'v1.0.1',
   })
 # ---
