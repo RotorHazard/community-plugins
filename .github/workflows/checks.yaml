@@ -96,6 +96,8 @@ jobs:
 
       - name: 🚀 Run validation
         run: uv run python scripts/check_releases.py --repository="${{ needs.preflight.outputs.repository }}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   removed:
     name: Removed validation
