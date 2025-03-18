@@ -3,7 +3,7 @@
 import base64
 import json
 from dataclasses import dataclass, field
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 from unittest.mock import AsyncMock, MagicMock
@@ -77,10 +77,21 @@ def mock_repos_releases() -> MagicMock:
     """Fixture to mock the GitHubAPI.repos.releases.list method."""
 
     async def list_releases(repo_name: str) -> MockGitHubResponse:
-        now = datetime.now(UTC)
-        stable = MockRelease("v1.0.1", False, now - timedelta(days=1))  # noqa: FBT003
-        prerelease = MockRelease("v1.0.2-beta", True, now)  # noqa: FBT003
-        return MockGitHubResponse(data=[prerelease, stable], etag="mock_release_etag")
+        """Return a list of releases."""
+        release_data = load_fixture("releases_data.json")
+        releases_list = []
+        for item in release_data:
+            created_at = datetime.strptime(
+                item["created_at"], "%Y-%m-%dT%H:%M:%SZ"
+            ).replace(tzinfo=UTC)
+            releases_list.append(
+                MockRelease(
+                    tag_name=item["tag_name"],
+                    prerelease=item["prerelease"],
+                    created_at=created_at,
+                )
+            )
+        return MockGitHubResponse(data=releases_list, etag="mock_releases_etag")
 
     return AsyncMock(side_effect=list_releases)
 
