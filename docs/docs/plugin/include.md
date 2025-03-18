@@ -1,7 +1,7 @@
 ---
 id: include
-title: Add your plugin
-description: How to include your repository in the plugin database
+title: Include repository
+description: How to include your plugin repository in the plugin database
 ---
 
 This guide will help you add your plugin repository to the community plugins database.

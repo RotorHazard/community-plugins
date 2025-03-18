@@ -66,7 +66,7 @@ RotorHazard relies on versioned releases to check for updates and ensure users c
 - The release tag must match the `version` field in `manifest.json`.
 - Each new version must be published as a separate release to enable proper update detection.
 - You can also add the plugin code as a ZIP file to the release assets.
-    - If you do this, you must include the `zip_filename` field in `manifest.json`, specifying the exact filename of the uploaded ZIP file.
+    - If you do this, you must include the `zip_filename` field in `manifest.json`, specifying the exact filename of the ZIP file.
 
 By following this approach, users will automatically be noticed when a new version of your plugin is available for installation.
 

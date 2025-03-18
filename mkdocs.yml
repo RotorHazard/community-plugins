@@ -55,9 +55,9 @@ nav:
   - Home: index.md
   - Plugin Database:
     - Getting started:
-      - docs/add/index.md
-    - docs/add/include.md
-    - docs/add/remove.md
+      - docs/plugin/index.md
+    - docs/plugin/include.md
+    - docs/plugin/remove.md
   - RHFest Action:
     - docs/rhfest/index.md
   - Help:
