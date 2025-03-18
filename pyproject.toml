@@ -23,6 +23,9 @@ dev = [
   "syrupy>=4.9.0",
 ]
 
+[tool.uv]
+default-groups = []
+
 [tool.coverage.run]
 plugins = ["covdefaults"]
 source = ["metadata"]
