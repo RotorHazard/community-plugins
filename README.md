@@ -2,12 +2,9 @@
 
 This project contains the database generation code for the list of community plugins for RotorHazard.
 
-## Add a new plugin
+## Documentation
 
-1. Fork this repository.
-2. Create a new branch from the **main** branch.
-3. Add your plugin to the `plugins.json` file.
-4. Create a pull request.
+The documentation for this project is available at [RotorHazard Community Plugins](https://community-plugins.rotorhazard.com/).
 
 ### Before submitting
 

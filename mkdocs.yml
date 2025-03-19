@@ -1,0 +1,107 @@
+site_name: RH Community Plugins
+site_url: https://rotorhazard.github.io/community-plugins/
+site_author: Klaas Schoute
+site_description: >-
+  A database of community-driven plugin for RotorHazard.
+
+# Copyright
+copyright: |
+  &copy; 2025 <a href="https://rotorhazard.com" target="_blank" rel="noopener">RotorHazard</a>
+
+# Repository
+repo_name: community-plugins
+repo_url: https://github.com/rotorhazard/community-plugins
+edit_uri: edit/main/docs/
+
+# Theme
+theme:
+  name: material
+  favicon: assets/img/favicon.ico
+  language: en
+  icon:
+    logo: fontawesome/solid/puzzle-piece
+  palette:
+    # Palette toggle for light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: orange
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    # Palette toggle for dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: black
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+  features:
+    - content.code.annotate
+    - content.code.copy
+    - navigation.indexes
+    - navigation.instant
+    - navigation.instant.prefetch
+    - navigation.instant.progress
+    - navigation.path
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.top
+    - navigation.tracking
+    - navigation.footer
+    # - navigation.sections
+    - search.highlight
+    - search.share
+    - search.suggest
+
+# Plugins
+plugins:
+  - search:
+      lang: en
+      separator: '[\s\u200b\-_,:!=\[\]()"`/]+|\.(?!\d)|&[lg]t;|(?!\b)(?=[A-Z][a-z])'
+
+nav:
+  - Home: index.md
+  - Plugin Database: database.md
+  - Publish a Plugin:
+    - Getting started:
+      - docs/plugin/index.md
+    - docs/plugin/include.md
+    - docs/plugin/remove.md
+  - RHFest Action:
+    - docs/rhfest/index.md
+  - Help:
+    - help/index.md
+
+# Markdown extensions
+markdown_extensions:
+  - attr_list
+  - md_in_html
+  - admonition
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.superfences
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.details
+  - pymdownx.mark
+  - toc:
+      permalink: true
+
+extra_javascript:
+  - assets/js/dataLoader.js
+
+# Extra
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/RotorHazard
+    - icon: fontawesome/brands/discord
+      link: https://discord.gg/ANKd2pzBKH
+    - icon: fontawesome/brands/youtube
+      link: https://www.youtube.com/@RotorHazard
+    - icon: fontawesome/brands/facebook
+      link: https://www.facebook.com/groups/rotorhazard
