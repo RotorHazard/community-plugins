@@ -17,5 +17,5 @@ Welcome to the RotorHazard Community Plugins! This site provides all the documen
   <p>Loading plugin metadata...</p>
 </div>
 
-<link rel="stylesheet" href="assets/plugin_card.css">
-<script src="assets/latest_plugins.js" defer></script>
+<link rel="stylesheet" href="assets/css/plugin_card.css">
+<script src="assets/js/latest_plugins.js" defer></script>

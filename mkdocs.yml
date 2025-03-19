@@ -16,6 +16,7 @@ edit_uri: edit/main/docs/
 # Theme
 theme:
   name: material
+  favicon: assets/img/favicon.ico
   language: en
   icon:
     logo: fontawesome/solid/puzzle-piece
