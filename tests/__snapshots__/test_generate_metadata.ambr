@@ -13,6 +13,7 @@
   dict({
     'etag_release': 'mock_releases_etag',
     'etag_repository': 'mock_repo_etag',
+    'forks_count': 10,
     'last_fetched': '2025-03-09T14:00:00+00:00',
     'last_prerelease': 'v1.0.0-beta',
     'last_updated': '2025-03-09T14:00:00+00:00',
@@ -29,6 +30,13 @@
       'zip_filename': 'plugin.zip',
     }),
     'open_issues': 5,
+    'releases': list([
+      dict({
+        'prerelease': False,
+        'published_at': FakeDatetime(2013, 3, 1, 19, 35, 32, tzinfo=datetime.timezone.utc),
+        'tag_name': 'v1.0.1',
+      }),
+    ]),
     'repository': 'owner/repo',
     'stargazers_count': 100,
     'topics': list([
@@ -36,5 +44,6 @@
       'plugin',
     ]),
     'used_ref': 'v1.0.1',
+    'watchers_count': 10,
   })
 # ---

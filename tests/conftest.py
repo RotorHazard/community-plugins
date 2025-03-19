@@ -31,6 +31,8 @@ class MockRepo:
     updated_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
     open_issues_count: int = 0
     stargazers_count: int = 10
+    watchers_count: int = 10
+    forks_count: int = 10
     topics: list[str] = field(default_factory=list)
     id: int = 123456
 
@@ -42,6 +44,7 @@ class MockRelease:
     tag_name: str
     prerelease: bool
     created_at: datetime
+    published_at: datetime
 
 
 def create_mock_repos(
@@ -84,11 +87,15 @@ def mock_repos_releases() -> MagicMock:
             created_at = datetime.strptime(
                 item["created_at"], "%Y-%m-%dT%H:%M:%SZ"
             ).replace(tzinfo=UTC)
+            published_at = datetime.strptime(
+                item["published_at"], "%Y-%m-%dT%H:%M:%SZ"
+            ).replace(tzinfo=UTC)
             releases_list.append(
                 MockRelease(
                     tag_name=item["tag_name"],
                     prerelease=item["prerelease"],
                     created_at=created_at,
+                    published_at=published_at,
                 )
             )
         return MockGitHubResponse(data=releases_list, etag="mock_releases_etag")
