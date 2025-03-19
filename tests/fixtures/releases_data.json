@@ -1,0 +1,20 @@
+[
+  {
+    "tag_name": "v1.0.1",
+    "draft": false,
+    "prerelease": false,
+    "created_at": "2013-03-01T19:35:32Z"
+  },
+  {
+    "tag_name": "v1.0.0",
+    "draft": false,
+    "prerelease": false,
+    "created_at": "2013-02-28T19:35:32Z"
+  },
+  {
+    "tag_name": "v1.0.0-beta",
+    "draft": false,
+    "prerelease": true,
+    "created_at": "2013-02-27T19:35:32Z"
+  }
+]

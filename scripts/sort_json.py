@@ -41,10 +41,11 @@ def sort_json(  # noqa: PLR0911
         # Check if on list or dict
         if isinstance(data, list):
             sorted_data = sorted(
-                data, key=lambda x: x if isinstance(x, str) else json.dumps(x)
+                data,
+                key=lambda x: x.casefold() if isinstance(x, str) else json.dumps(x),
             )
         elif isinstance(data, dict):
-            sorted_data = {k: data[k] for k in sorted(data)}
+            sorted_data = {k: data[k] for k in sorted(data, key=str.casefold)}
         else:
             LOGGER.warning(
                 f"⚠️ Invalid format in {file_path}: Only lists and dicts are supported."

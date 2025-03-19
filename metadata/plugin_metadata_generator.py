@@ -25,17 +25,24 @@ class PluginMetadataGenerator:
         self.repo_metadata = {}
         self.etag_repository = None
         self.etag_release = None
-        self.latest_stable = None
-        self.latest_prerelease = None
+        self.releases = []
+
+    @property
+    def latest_stable(self) -> str | None:
+        """Return the latest stable release."""
+        return next((r.tag_name for r in self.releases if not r.prerelease), None)
+
+    @property
+    def latest_prerelease(self) -> str | None:
+        """Return the latest pre-release."""
+        return next((r.tag_name for r in self.releases if r.prerelease), None)
 
     @property
     def used_ref(self) -> str:
-        """Return the reference used for fetching repository data."""
-        return (
-            self.latest_prerelease
-            or self.latest_stable
-            or self.repo_metadata.default_branch
-        )
+        """Return the branch/tag name used for fetching metadata."""
+        if self.releases:
+            return self.releases[0].tag_name
+        return self.repo_metadata.default_branch
 
     async def fetch_repository_info(self, github: GitHubAPI) -> bool:
         """Fetch and store repository metadata from GitHub.
@@ -92,23 +99,18 @@ class PluginMetadataGenerator:
                 return False
 
             # Ensure releases are sorted by creation date (newest first)
-            sorted_releases = sorted(
+            self.releases = sorted(
                 releases.data, key=lambda r: r.created_at, reverse=True
-            )
-            # Extract latest stable and prerelease versions
-            self.latest_stable = next(
-                (r.tag_name for r in sorted_releases if not r.prerelease), None
-            )
-            self.latest_prerelease = next(
-                (r.tag_name for r in sorted_releases if r.prerelease), None
             )
         except GitHubException:
             LOGGER.exception(f"<{self.repo}> Error occurred while fetching releases.")
             return False
-        LOGGER.info(
-            f"<{self.repo}> ℹ️  Latest stable release: {self.latest_stable}, "  # noqa: RUF001
-            f"Latest pre-release: {self.latest_prerelease if self.latest_prerelease else 'None'}"  # noqa: E501
-        )
+
+        # Log the latest stable and prerelease versions
+        message = f"<{self.repo}> ℹ️  Latest stable release: {self.latest_stable}"  # noqa: RUF001
+        if self.latest_prerelease:
+            message += f", Latest pre-release: {self.latest_prerelease}"
+        LOGGER.info(message)
         return True
 
     async def fetch_manifest_file(self, github: GitHubAPI) -> bool:
@@ -224,7 +226,7 @@ class PluginMetadataGenerator:
             return False
         # Manifest domain matches the folder name
         LOGGER.info(
-            f"<{self.repo}> ✅ Domain validated: "
+            f"<{self.repo}> ✅ Manifest domain validated: "
             f"'{manifest_domain}' matches domain folder"
         )
         return True
@@ -242,24 +244,20 @@ class PluginMetadataGenerator:
             return version.lstrip("v") if version else None
 
         manifest_version = self.manifest_data.get("version")
-        stable_version = normalize_version(self.latest_stable)
-        prerelease_version = normalize_version(self.latest_prerelease)
+        latest_version = normalize_version(self.used_ref)
 
-        if manifest_version in [stable_version, prerelease_version]:
+        if manifest_version == latest_version:
             LOGGER.info(
-                f"<{self.repo}> ✅ Version validated: '{manifest_version}' "
-                f"matches latest {'prerelease' if prerelease_version else 'stable'}"
+                f"<{self.repo}> ✅ Manifest version validated: '{manifest_version}' "
+                f"matches the latest release '{latest_version}'"
             )
             return True
 
         # Mismatch - version is outdated
-        warning_message = (
-            f"<{self.repo}> Version mismatch: '{manifest_version}' "
-            f"(manifest) vs '{stable_version}' (latest stable)"
+        LOGGER.warning(
+            f"<{self.repo}> Manifest version mismatch: '{manifest_version}' "
+            f"(manifest) vs '{latest_version}' (latest release)"
         )
-        if prerelease_version:
-            warning_message += f", '{prerelease_version}' (prerelease)"
-        LOGGER.warning(warning_message)
         return False
 
     async def fetch_metadata(self, github: GitHubAPI) -> dict | None:  # noqa: PLR0911
