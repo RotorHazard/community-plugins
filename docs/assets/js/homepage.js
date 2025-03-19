@@ -12,13 +12,14 @@ async function showLatestPlugins() {
         return;
     }
 
-    // Sorteer en pak de laatste 6
-    const latestPlugins = plugins.sort((a, b) => new Date(b.last_updated) - new Date(a.last_updated)).slice(0, window.numberOfPlugins);
+    // Sort plugins by latest release published
+    const latestPlugins = plugins.sort((a, b) => new Date(b.releases[0].published_at) - new Date(a.releases[0].published_at)).slice(0, window.numberOfPlugins);
     container.innerHTML = ""; // Clear oude content
 
     latestPlugins.forEach(plugin => {
         const manifest = plugin.manifest;
         const repoUrl = `https://github.com/${plugin.repository}`;
+        const releaseDate = new Date(plugin.releases[0].published_at).toLocaleDateString();
 
         const card = document.createElement("div");
         card.classList.add("plugin-card");
@@ -30,6 +31,7 @@ async function showLatestPlugins() {
             <span class="version-badge">${manifest.version}</span>
             <h2>${manifest.name}</h2>
             <p class="plugin-description">${manifest.description}</p>
+            <p class="release-date"><strong>Released:</strong> ${releaseDate}</p>
             <p><strong>Author:</strong> <a href="${manifest.author_uri}" target="_blank">${manifest.author}</a></p>
         `;
 
@@ -37,7 +39,7 @@ async function showLatestPlugins() {
     });
 }
 
-// ✅ Voer uit wanneer MkDocs Material een pagina laadt
+// Run when MkDocs Material loads a page
 document$.subscribe(() => {
     if (document.getElementById("plugin-container")) {
         showLatestPlugins();

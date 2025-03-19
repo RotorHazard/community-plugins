@@ -22,6 +22,7 @@ On this page, you can browse all the plugins in the RotorHazard Community Databa
     <option value="latest">Last Updated</option>
     <option value="name">Name (A-Z)</option>
     <option value="stars">Star Count</option>
+    <option value="forks">Fork Count</option>
   </select>
 </div>
 

@@ -55,6 +55,11 @@ function populateCategories(plugins) {
     // console.log("✅ Categories populated:", Array.from(categories));
 }
 
+// Function to get the latest release date
+function getLatestReleaseDate(plugin) {
+    return new Date(plugin.releases[0].published_at);
+}
+
 // Render plugins with filtering, sorting, and lazy loading
 function renderPlugins() {
     const container = document.getElementById("plugin-container");
@@ -79,11 +84,13 @@ function renderPlugins() {
 
     // Sorting logic
     if (sortType === "latest") {
-        filteredPlugins.sort((a, b) => new Date(b.last_updated) - new Date(a.last_updated));
+        filteredPlugins.sort((a, b) => getLatestReleaseDate(b) - getLatestReleaseDate(a));
     } else if (sortType === "name") {
         filteredPlugins.sort((a, b) => a.manifest.name.localeCompare(b.manifest.name));
     } else if (sortType === "stars") {
         filteredPlugins.sort((a, b) => (b.stargazers_count || 0) - (a.stargazers_count || 0));
+    }  else if (sortType === "forks") {
+        filteredPlugins.sort((a, b) => (b.forks_count || 0) - (a.forks_count || 0));
     }
 
     // Lazy load per page
@@ -99,6 +106,7 @@ function renderPlugins() {
         const manifest = plugin.manifest;
         const repoUrl = `https://github.com/${plugin.repository}`;
         const starCount = plugin.stargazers_count || 0;
+        const forkCount = plugin.forks_count || 0;
 
         const card = document.createElement("div");
         card.classList.add("plugin-card");
@@ -114,6 +122,7 @@ function renderPlugins() {
             <p><strong>Category:</strong> ${manifest.category ? manifest.category.join(', ') : "None"}</p>
             <div class="plugin-footer">
                 ${starCount > 0 ? `<span class="badge badge-stars">⭐ ${starCount} Stars</span>` : ""}
+                ${forkCount > 0 ? `<span class="badge badge-forks">🍴 ${forkCount} Forks</span>` : ""}
             </div>
         `;
 

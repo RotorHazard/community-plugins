@@ -86,6 +86,14 @@
   text-overflow: ellipsis;
 }
 
+/* 🔹 Release Date */
+.release-date {
+  font-size: 0.85rem;
+  color: var(--text-color);
+  opacity: 0.8;
+  margin-top: 5px;
+}
+
 /* 🔹 Links */
 .plugin-card a {
   color: var(--link-color);
@@ -100,6 +108,7 @@
 .plugin-footer {
   display: flex;
   align-items: center;
+  gap: 8px;
   justify-content: flex-start;
   margin-top: auto;
   padding-top: 8px;
@@ -119,8 +128,17 @@
   background: #ffc107;
 }
 
-/* 🔹 Hide Empty Star Badge */
+.badge-forks {
+  background: #6c757d;
+}
+
+/* 🔹 Hide Empty Badge */
 .badge-stars:empty {
+  display: none;
+  visibility: hidden;
+}
+
+.badge-forks:empty {
   display: none;
   visibility: hidden;
 }
