@@ -61,8 +61,8 @@ plugins:
 
 nav:
   - Home: index.md
-  - Database: database.md
-  - Publish Plugin:
+  - Plugin Database: database.md
+  - Publish a Plugin:
     - Getting started:
       - docs/plugin/index.md
     - docs/plugin/include.md
