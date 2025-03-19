@@ -326,6 +326,18 @@ class PluginMetadataGenerator:
                 "used_ref": self.used_ref,
             }
 
+            # Add releases metadata
+            self.metadata = {
+                "releases": [
+                    {
+                        "tag_name": self.releases[0].tag_name,
+                        "published_at": self.releases[0].published_at,
+                        "prerelease": self.releases[0].prerelease,
+                    }
+                ],
+                **self.metadata,
+            }
+
             # Add prerelease version if available
             if self.latest_prerelease:
                 self.metadata["last_prerelease"] = self.latest_prerelease

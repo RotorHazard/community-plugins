@@ -30,6 +30,13 @@
       'zip_filename': 'plugin.zip',
     }),
     'open_issues': 5,
+    'releases': list([
+      dict({
+        'prerelease': False,
+        'published_at': FakeDatetime(2013, 3, 1, 19, 35, 32, tzinfo=datetime.timezone.utc),
+        'tag_name': 'v1.0.1',
+      }),
+    ]),
     'repository': 'owner/repo',
     'stargazers_count': 100,
     'topics': list([
