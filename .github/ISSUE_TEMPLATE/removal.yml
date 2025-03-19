@@ -34,7 +34,7 @@ body:
     required: true
   attributes:
     label: Reason for Removal
-    description: Explain why this repository should be removed. Providing clear reasoning will help in processing the request.
+    placeholder: Explain why this repository should be removed. Providing clear reasoning will help in processing the request.
 - type: input
   validations:
     required: false
