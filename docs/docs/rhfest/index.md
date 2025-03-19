@@ -2,6 +2,8 @@
 id: rhfest
 title: RHFest Action
 description: A GitHub action that validates a RotorHazard plugin
+hide:
+  - navigation
 ---
 
 # RHFest Action
