@@ -26,5 +26,5 @@ If you need help or have questions, the community is here to assist!
 Want to help improve RotorHazard? Here’s how you can contribute:
 
 - **Submit bug reports**: If you find an issue, report it on [GitHub Issues](https://github.com/RotorHazard/RotorHazard/issues).
-- **Develop plugins**: Check out the [RotorHazard API](https://github.com/RotorHazard/RotorHazard/blob/main/doc/RHAPI.md) to create custom plugins.
+- **Develop plugins**: Check out the [RotorHazard API](https://github.com/RotorHazard/RotorHazard/blob/main/doc/RHAPI.md) and [plugin template](https://github.com/rotorhazard/plugin-template) to create RH plugins.
 - **Improve documentation**: Help expand and refine the documentation by submitting updates on GitHub.

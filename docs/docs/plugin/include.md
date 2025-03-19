@@ -18,13 +18,27 @@ Before submitting your plugin repository, make sure it meets the requirements be
 
 To add your plugin to the community plugins database, follow the steps below.
 
+!!! warning "Create a separate PR for each plugin"
+    Want to add multiple plugins? Submit a separate pull request for each one. Keeping PRs small aligns with GitHub's best practices and makes the review process much easier.
+
 1. Fork the [community plugins](https://github.com/RotorHazard/community-plugins) repository.
 2. Create a feature branch and add your plugin (format: `"owner/repo"`) to the [`plugins.json`](https://github.com/RotorHazard/community-plugins/blob/main/plugins.json).
 3. Commit your changes.
 4. Open a pull request and follow the instructions in the PR template.
 
-!!! note
-    Want to add multiple plugins? Submit a separate pull request for each one. Keeping PRs small aligns with GitHub's best practices and makes the review process much easier.
+???+ tip "Sort a JSON file"
+    There is a special script in the repository that can sort the json files alphabetically for you in case-insensitive order.
+
+    ```bash
+    python scripts/sort_json.py plugins.json
+    ```
+
+??? tip "use pre-commit to ensure quality commits"
+    [Pre-commit](https://pre-commit.com/) ensures that quality commits are pushed and you also know immediately if problems arise that can be solved in advance. To install pre-commit, run the following command inside your virtual environment (.venv):
+
+    ```bash
+    pre-commit install
+    ```
 
 ## CI Checks
 
