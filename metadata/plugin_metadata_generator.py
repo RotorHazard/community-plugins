@@ -320,6 +320,8 @@ class PluginMetadataGenerator:
                 "open_issues": self.repo_metadata.open_issues_count,
                 "repository": self.repo,
                 "stargazers_count": self.repo_metadata.stargazers_count,
+                "watchers_count": self.repo_metadata.watchers_count,
+                "forks_count": self.repo_metadata.forks_count,
                 "topics": self.repo_metadata.topics,
                 "used_ref": self.used_ref,
             }

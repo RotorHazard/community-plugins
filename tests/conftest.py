@@ -31,6 +31,8 @@ class MockRepo:
     updated_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
     open_issues_count: int = 0
     stargazers_count: int = 10
+    watchers_count: int = 10
+    forks_count: int = 10
     topics: list[str] = field(default_factory=list)
     id: int = 123456
 
