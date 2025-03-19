@@ -1,12 +1,6 @@
 // Fetches the latest plugin metadata from the RHCP API and displays it on the page
-if (typeof window.isLoading === "undefined") {
-    window.isLoading = false;
-}
-
 async function loadPlugins() {
-    if (window.isLoading) return;
-    window.isLoading = true;
-
+    // console.log("🔄 Loading plugins...");
     const url = "https://api.allorigins.win/get?url=" + encodeURIComponent("https://rhcp.hazardcreative.com/v1/plugin/data.json");
 
     try {
@@ -53,22 +47,12 @@ async function loadPlugins() {
             container.innerHTML = '<p class="text-red-500">❌ Could not load plugin metadata, please try again later.</p>';
         }
     }
-
-    setTimeout(() => { window.isLoading = false; }, 500);
 }
 
-// Run once when the page is fully loaded
-document.addEventListener("DOMContentLoaded", loadPlugins);
-
-// Detect MkDocs AJAX page changes and reload plugins
-document.addEventListener("DOMContentLoaded", function () {
-    if (typeof MutationObserver !== "undefined") {
-        const observer = new MutationObserver(() => {
-            if (document.querySelector("#plugin-container")) {
-                loadPlugins();
-            }
-        });
-
-        observer.observe(document.body, { childList: true, subtree: true });
+// Use `document$` to ensure scripts run on page load and after AJAX navigation
+document$.subscribe(() => {
+    if (document.getElementById("plugin-container")) {
+        // console.log("🔄 Detected page change - Reloading plugins...");
+        loadPlugins();
     }
 });
