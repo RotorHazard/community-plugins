@@ -69,7 +69,7 @@ nav:
   - RHFest Action:
     - docs/rhfest/index.md
   - Help:
-    - docs/help/index.md
+    - help/index.md
 
 # Markdown extensions
 markdown_extensions:
