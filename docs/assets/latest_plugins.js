@@ -4,7 +4,7 @@ if (typeof window.isLoading === "undefined") {
 }
 
 async function loadPlugins() {
-    if (window.isLoading) return; // Avoid unnecessary re-execution
+    if (window.isLoading) return;
     window.isLoading = true;
 
     const url = "https://api.allorigins.win/get?url=" + encodeURIComponent("https://rhcp.hazardcreative.com/v1/plugin/data.json");
@@ -25,8 +25,6 @@ async function loadPlugins() {
             .slice(0, 6);
 
         const container = document.getElementById("plugin-container");
-        if (!container) return; // Avoid errors if the element doesn't exist
-
         container.innerHTML = ""; // Clear old cards
 
         latestPlugins.forEach(plugin => {
