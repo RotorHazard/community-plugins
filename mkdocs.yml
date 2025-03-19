@@ -1,5 +1,12 @@
 site_name: RH Community Plugins
+site_url: https://rotorhazard.github.io/community-plugins/
 site_author: Klaas Schoute
+site_description: >-
+  A database of community-driven plugin for RotorHazard.
+
+# Copyright
+copyright: |
+  &copy; 2025 <a href="https://rotorhazard.com" target="_blank" rel="noopener">RotorHazard</a>
 
 # Repository
 repo_name: community-plugins
@@ -28,7 +35,6 @@ theme:
         icon: material/weather-sunny
         name: Switch to light mode
   features:
-    - content.action.edit
     - content.code.annotate
     - content.code.copy
     - navigation.indexes
@@ -40,6 +46,7 @@ theme:
     - navigation.tabs.sticky
     - navigation.top
     - navigation.tracking
+    - navigation.footer
     # - navigation.sections
     - search.highlight
     - search.share
@@ -53,7 +60,7 @@ plugins:
 
 nav:
   - Home: index.md
-  - Plugin Database:
+  - Publish Plugin:
     - Getting started:
       - docs/plugin/index.md
     - docs/plugin/include.md

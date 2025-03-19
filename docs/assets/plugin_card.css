@@ -1,0 +1,119 @@
+/* Plugin container: Flexbox layout */
+#plugin-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  justify-content: center;
+}
+
+/* Plugin card styling */
+.plugin-card {
+  position: relative; /* Needed for absolute positioning of version badge */
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 15px;
+  width: 100%;
+  max-width: calc(33.333% - 20px);
+  box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+  background: var(--card-bg);
+  transition: transform 0.25s ease-in-out, box-shadow 0.25s ease-in-out, background 0.25s, border 0.25s;
+  text-align: left;
+  color: var(--text-color);
+}
+
+/* Hover effect: Softer scaling and shadow */
+.plugin-card:hover {
+  transform: scale(1.03); /* Slightly enlarged */
+  box-shadow: 4px 4px 15px rgba(0, 0, 0, 0.2); /* Soft shadow */
+  background: var(--hover-bg); /* Slight background change */
+}
+
+/* Release version badge (top-right corner) */
+.version-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: #28a745;
+  color: white;
+  font-size: 0.8em;
+  font-weight: bold;
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+
+/* Card title */
+.plugin-card h2 {
+  margin: 0 0 10px;
+  font-size: 1.2em;
+}
+
+/* Plugin details */
+.plugin-card p {
+  margin: 5px 0;
+  font-size: 0.95em;
+  color: var(--text-color);
+}
+
+/* Plugin description */
+.plugin-description {
+  display: -webkit-box;
+  -webkit-line-clamp: 2; /* Allows max 2 lines */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Links */
+.plugin-card a {
+  color: var(--link-color);
+  text-decoration: none;
+}
+
+.plugin-card a:hover {
+  text-decoration: underline;
+}
+
+/* Badges */
+.badge {
+  display: inline-block;
+  padding: 3px 8px;
+  font-size: 0.8em;
+  font-weight: bold;
+  border-radius: 4px;
+  color: white;
+}
+
+.badge-stars {
+  background: #ffc107;
+}
+
+/* 🌞 Default Light Mode Variables */
+:root {
+  --card-bg: #ffffff;
+  --hover-bg: #f8f8f8;
+  --border-color: #ddd;
+  --text-color: #333;
+  --link-color: #007bff;
+}
+
+/* 🌙 Dark Mode Styling (for MkDocs Material) */
+[data-md-color-scheme="slate"] {
+  --card-bg: #252526;
+  --hover-bg: #303030;
+  --border-color: #444;
+  --text-color: #ddd;
+  --link-color: #4aa3ff;
+}
+
+/* Responsive layout */
+@media (max-width: 1024px) {
+  .plugin-card {
+    max-width: calc(50% - 20px); /* 2 per row on tablets */
+  }
+}
+
+@media (max-width: 768px) {
+  .plugin-card {
+    max-width: 100%; /* 1 per row on mobile */
+  }
+}
