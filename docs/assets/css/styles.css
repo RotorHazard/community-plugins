@@ -1,0 +1,197 @@
+/* 🌞 Light Mode Defaults */
+:root {
+  --filter-bg: #f9f9f9;
+  --border-color: #ddd;
+  --card-bg: #ffffff;
+  --text-color: #333;
+  --link-color: #007bff;
+}
+
+/* 🌙 Dark Mode */
+[data-md-color-scheme="slate"] {
+  --filter-bg: #2b2b2b;
+  --border-color: #444;
+  --card-bg: #252526;
+  --text-color: #ddd;
+  --link-color: #4aa3ff;
+}
+
+/* Plugin container: Flexbox layout */
+#plugin-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  justify-content: center;
+}
+
+/* Plugin card styling */
+.plugin-card {
+  background: var(--card-bg);
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+  color: var(--text-color);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  max-width: calc(33.333% - 20px);
+  padding: 15px;
+  position: relative;
+  text-align: left;
+  transition: transform 0.25s ease-in-out, box-shadow 0.25s ease-in-out, background 0.25s, border 0.25s;
+  width: 100%;
+}
+
+/* 🔹 Hover effect */
+.plugin-card:hover {
+  transform: scale(1.02); /* Slightly enlarged */
+  box-shadow: 4px 4px 15px rgba(0, 0, 0, 0.2); /* Soft shadow */
+
+}
+
+/* 🔹 Release Version Badge (Top-right Corner) */
+.version-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: #28a745;
+  color: white;
+  font-size: 0.8em;
+  font-weight: bold;
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+
+/* 🔹 Card Title */
+.plugin-card h2 {
+  margin: 0 0 10px;
+  font-size: 1.2em;
+  font-weight: 500;
+}
+
+/* 🔹 Plugin Details */
+.plugin-card p {
+  margin: 5px 0;
+  font-size: 0.95em;
+  color: var(--text-color);
+}
+
+/* 🔹 Plugin description */
+.plugin-description {
+  display: -webkit-box;
+  line-clamp: 2;
+  -webkit-line-clamp: 2; /* Allows max 2 lines */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 🔹 Links */
+.plugin-card a {
+  color: var(--link-color);
+  text-decoration: none;
+}
+
+.plugin-card a:hover {
+  text-decoration: underline;
+}
+
+/* 🔹 Footer Section (Always at Bottom) */
+.plugin-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  margin-top: auto;
+  padding-top: 8px;
+}
+
+/* 🔹 Badges */
+.badge {
+  display: inline-block;
+  padding: 3px 8px;
+  font-size: 0.8em;
+  font-weight: bold;
+  border-radius: 4px;
+  color: white;
+}
+
+.badge-stars {
+  background: #ffc107;
+}
+
+/* 🔹 Hide Empty Star Badge */
+.badge-stars:empty {
+  display: none;
+  visibility: hidden;
+}
+
+/* 🔹 Filter & Sort Container */
+#filter-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 15px;
+  padding: 8px;
+  background-color: var(--filter-bg);
+  border-radius: 6px;
+  box-shadow: 1px 1px 5px rgba(0, 0, 0, 0.1);
+  font-size: 0.9rem;
+}
+
+/* 🔹 Labels (Aligned with Dropdowns) */
+#filter-container label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-color);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+/* 🔹 Dropdown Styling (Smaller & Compact) */
+#category, #sort {
+  padding: 5px 8px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  font-size: 0.85rem;
+  background-color: var(--card-bg);
+  color: var(--text-color);
+  cursor: pointer;
+}
+
+/* 🔹 Dropdown Hover */
+#category:hover, #sort:hover {
+  border-color: var(--link-color);
+}
+
+/* 🔹 Dropdown Focus */
+#category:focus, #sort:focus {
+  outline: 1px solid var(--link-color);
+}
+
+/* Responsive layout */
+@media (max-width: 1024px) {
+  .plugin-card {
+    max-width: calc(50% - 20px); /* 2 per row on tablets */
+  }
+}
+
+/* 🔹 Responsive Adjustments (Mobile) */
+@media (max-width: 768px) {
+  .plugin-card {
+    max-width: 100%; /* 1 per row */
+  }
+
+  #filter-container {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    text-align: center;
+  }
+
+  #category, #sort {
+    width: 100%;
+    text-align: left;
+  }
+}

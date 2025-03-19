@@ -61,6 +61,7 @@ plugins:
 
 nav:
   - Home: index.md
+  - Database: database.md
   - Publish Plugin:
     - Getting started:
       - docs/plugin/index.md
@@ -89,6 +90,9 @@ markdown_extensions:
   - pymdownx.mark
   - toc:
       permalink: true
+
+extra_javascript:
+  - assets/js/dataLoader.js
 
 # Extra
 extra:
