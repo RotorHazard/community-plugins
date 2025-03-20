@@ -44,19 +44,43 @@ README.md
 
 ### Manifest.json
 
-In your plugin directory you must have a `manifest.json` file, that at least contains the required keys from the table below.
+In your plugin directory, you must have a `manifest.json` file that contains at least the required keys from the table below. See also the validation examples for specific fields.
 
-| Key                      |  Type     | Required | Description                                                          |
-| ------------------------ | :-------: | :------: | :------------------------------------------------------------------- |
-| `domain`                 | string    | Yes      | Unique identifier for the plugin                                     |
-| `name`                   | string    | Yes      | Name of the plugin                                                   |
-| `description`            | string    | Yes      | Short description of the plugin                                      |
-| `required_rhapi_version` | string    | Yes      | The minimum version of the RotorHazard API that the plugin requires  |
-| `version`                | string    | Yes      | The version of the plugin                                            |
-| `category`               | list[str] | Yes      | The category the plugin belongs to                                   |
-| `documentation_uri`      | string    | No       | URL to the documentation                                             |
-| `dependencies`           | list[str] | No       | List of additional plugins that are required for this plugin to work |
-| `zip_filename`           | string    | No       | The filename of the ZIP file containing the plugin code              |
+| Key                      |  Type     | Required | Description                                                            |
+| ------------------------ | :-------: | :------: | :--------------------------------------------------------------------- |
+| `domain`                 | string    | Yes      | Unique identifier for the plugin                                       |
+| `name`                   | string    | Yes      | Name of the plugin                                                     |
+| `description`            | string    | Yes      | Short description of the plugin                                        |
+| `required_rhapi_version` | string    | Yes      | The minimum version of the RotorHazard API that the plugin requires    |
+| `version`                | string    | Yes      | The version of the plugin (e.g., `1.2.3`, `1.2.3-beta`)                |
+| `category`               | list[str] | Yes      | The category the plugin belongs to ([see list][categories])            |
+| `documentation_uri`      | string    | No       | URL to the documentation                                               |
+| `dependencies`           | list[str] | No       | List of additional PyPI dependencies required for this plugin          |
+| `zip_filename`           | string    | No       | The filename of the ZIP file containing the plugin code (e.g., `plugin.zip`) |
+| `license`                | string    | No       | License under which the plugin is distributed (e.g., `MIT`, `GPL-3.0`) |
+| `license_uri`            | string    | No       | URL to the license file                                                |
+
+
+!!! note "Validation examples for specific fields"
+
+    - **`domain`** must be a unique identifier for the plugin, using only lowercase letters, numbers, and underscores.
+        - ✅ Example: `myplugin`, `my_plugin`
+        - ❌ Invalid: `MyPlugin`, `my-plugin`, `my_plugin!`
+    - **`version`** must follow [Semantic Versioning (SemVer)](https://semver.org/), including:
+        - **Basic format:** `major.minor.patch`
+            - ✅ Example: `1.2.3`
+        - **Pre-release identifiers (optional):** `-alpha`, `-beta`, `-rc`
+            - ✅ Example: `1.2.3-beta`, `1.2.3-beta.1`, `1.2.3-rc.2`
+    - **`dependencies`** must be valid PyPI package names and can include optional version constraints:
+        - **Basic format:**
+            - ✅ Example: `package`
+        - **Version constraints (optional):**
+            - ✅ Examples:
+                - Exact version: `flask==2.2.3`
+                - Minimum version: `numpy>=1.21`
+                - Compatible release: `pandas~=1.3.0`
+                - Version exclusion: `scipy!=1.5.2`
+        - ❌ Invalid: `package_name`, `mypackage!!`, `package==`
 
 ### GitHub releases
 
@@ -70,6 +94,9 @@ RotorHazard relies on versioned releases to check for updates and ensure users c
 
 By following this approach, users will automatically be noticed when a new version of your plugin is available for installation.
 
-### Example
+### Template example
 
 There is a dedicated [template plugin](https://github.com/RotorHazard/plugin-template) repository that demonstrates the structure of a community RotorHazard plugin. You can use it as a reference or fork it as a GitHub template to quickly start developing your own plugin.
+
+<!-- LINKS -->
+[categories]: https://github.com/RotorHazard/community-plugins/blob/main/categories.json
