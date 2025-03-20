@@ -44,7 +44,7 @@ README.md
 
 ### Manifest.json
 
-In your plugin directory, you must have a `manifest.json` file that contains at least the required keys from the table below. See also the validation format for specific fields.
+In your plugin directory, you must have a `manifest.json` file that contains at least the required keys from the table below. See also the validation examples for specific fields.
 
 | Key                      |  Type     | Required | Description                                                            |
 | ------------------------ | :-------: | :------: | :--------------------------------------------------------------------- |
