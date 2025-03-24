@@ -6,17 +6,28 @@ description: "How to get started with the community plugins"
 
 RotorHazard encouraged community-driven plugin development, making it easy to extend the platform with new features. By adding your plugin to the community plugins database, it becomes available to all users and can be easily installed through the UI.
 
+## Requirements
+
 For your repository to be added, several criteria need to be met. This guide will help you prepare your repository and add it to the community plugins database.
 
-## Plugin requirements
+### General
 
-For an plugin repository to be valid, it must meet the requirements below.
+- The repository must be public.
+- A plugin is always free to use for all types of events.
+- Add [RHFest](https://github.com/RotorHazard/rhfest-action) validation action to your repository and make sure it passes.
+- Publish at least 1 [release](#github-releases), this is required for the CI checks.
 
 ### Repository structure
+
+The plugin repository must follow a specific structure to be valid.
 
 - The plugin code must have a `manifest.json` file.
 - All files required for the plugin to run must be located inside the directory: `ROOT_OF_REPO/custom_plugins/PLUGIN_DOMAIN/`.
 - There must only be one plugin per repository, i.e. there can only be one subdirectory to: `ROOT_OF_REPO/custom_plugins/`.
+
+!!! note "RHFest validation"
+
+    [RHFest](https://github.com/RotorHazard/rhfest-action) will take care of most of the validation checks for you. Make sure to add it to your repository and ensure it passes before submitting your plugin.
 
 #### OK example:
 

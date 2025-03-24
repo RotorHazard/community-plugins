@@ -8,11 +8,7 @@ This guide will help you add your plugin repository to the community plugins dat
 
 ## Prepare your repository
 
-Before submitting your plugin repository, make sure it meets the requirements below.
-
-- Make the repository public.
-- Add [RHFest](https://github.com/RotorHazard/rhfest-action) validation action to your repository and make sure it passes.
-- Publish at least 1 release, this is required for the CI checks.
+Before submitting your plugin repository, make sure it meets all the [requirements](index.md#requirements) listed in the Getting Started guide.
 
 ## Add your plugin
 
