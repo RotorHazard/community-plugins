@@ -6,6 +6,7 @@ on:
   push:
     branches:
       - main
+      - klaas-2025-055
   pull_request:
     branches:
       - main
