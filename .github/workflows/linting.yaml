@@ -105,4 +105,4 @@ jobs:
           python-version: ${{ env.DEFAULT_PYTHON }}
           enable-cache: true
       - name: Validate JSON files
-        run: uv run python scripts/sort_json.py removed.json plugins.json --check
+        run: uv run python scripts/sort_json.py removed.json plugins.json --check --diff
