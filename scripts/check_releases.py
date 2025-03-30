@@ -8,8 +8,16 @@ import re
 import sys
 
 from aiogithubapi import GitHubAPI, GitHubException
+from dotenv import load_dotenv
+
+load_dotenv()
 
 REPO_REGEX = re.compile(r"^[a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-]+$")
+SEMVER_REGEX = re.compile(
+    r"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)"  # major.minor.patch
+    r"(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?"  # optional pre-release
+    r"(?:\+([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?$"  # optional build metadata
+)
 
 # Loggin setup
 logging.addLevelName(logging.INFO, "")
@@ -38,6 +46,21 @@ def valid_repository(value: str) -> str:
     return value
 
 
+def is_valid_semver(tag: str) -> bool:
+    """Check if a tag follows SemVer format.
+
+    Args:
+    ----
+        tag (str): Release tag (without the 'v' prefix).
+
+    Returns:
+    -------
+        bool: True if the tag is valid according to SemVer, otherwise False.
+
+    """
+    return bool(SEMVER_REGEX.match(tag))
+
+
 async def check_releases(repository: str, token: str) -> None:
     """Check if a GitHub repository has at least one release.
 
@@ -54,12 +77,25 @@ async def check_releases(repository: str, token: str) -> None:
             LOGGER.exception(f"Failed to fetch releases for repository {repository}.")
             sys.exit(1)
 
-        release_count: int = len(response.data)
-        LOGGER.info(f"🔍 Found {release_count} release(s) for repository: {repository}")
+        releases = response.data
+        LOGGER.info(f"✅ Found {len(releases)} release(s) for repository: {repository}")
 
-        if release_count == 0:
+        if len(releases) == 0:
             LOGGER.error(f"No releases found for repository: {repository}")
             sys.exit(1)
+
+        # Sort releases by creation date (latest first)
+        sorted_releases = sorted(releases, key=lambda r: r.created_at, reverse=True)
+        latest_release = sorted_releases[0]
+        tag = getattr(latest_release, "tag_name", "")
+        LOGGER.info(f"🔍 Latest release tag: {tag}")
+
+        # Check if the latest release tag follows SemVer
+        if not is_valid_semver(tag.removeprefix("v")):
+            LOGGER.error(f"The latest release tag '{tag}' does not follow SemVer.")
+            sys.exit(1)
+        else:
+            LOGGER.info("✅ The latest release tag follows SemVer.")
 
 
 if __name__ == "__main__":
