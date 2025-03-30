@@ -1,6 +1,7 @@
 """Sorts a JSON file."""
 
 import argparse
+import difflib
 import json
 import logging
 import sys
@@ -18,9 +19,10 @@ logging.basicConfig(
 LOGGER = logging.getLogger(__name__)
 
 
-def sort_json(  # noqa: PLR0911
+def sort_json(
     file_path: Path,
     check_only: bool = False,  # noqa: FBT001, FBT002
+    show_diff: bool = False,  # noqa: FBT001, FBT002
 ) -> bool:
     """Check if a JSON file is sorted or sort it.
 
@@ -52,22 +54,29 @@ def sort_json(  # noqa: PLR0911
             )
             return False
 
-        if check_only:
-            # Validate if the file is sorted
-            if data != sorted_data:
-                LOGGER.error(f"❌ {file_path} is not sorted.")
-                return False
-            LOGGER.info(f"✅ {file_path} is already sorted.")
-            return True
-
-        # Write sorted data to file
+        # Write the sorted data back to the file
         if data != sorted_data:
+            if check_only:
+                LOGGER.error(f"❌ {file_path} is not sorted.")
+                if show_diff:
+                    original = json.dumps(data, indent=2).splitlines()
+                    new = json.dumps(sorted_data, indent=2).splitlines()
+                    diff = difflib.unified_diff(
+                        original,
+                        new,
+                        fromfile=f"{file_path} (original)",
+                        tofile=f"{file_path} (sorted)",
+                        lineterm="",
+                    )
+                    diff_output = "\n".join(diff)
+                    if diff_output.strip():
+                        LOGGER.info(f"🔍 Diff for {file_path}\n{diff_output}\n")
+                return False
             with Path.open(file_path, "w") as file:
                 json.dump(sorted_data, file, indent=2)
                 file.write("\n")  # Add newline at the end of the file
             LOGGER.info(f"🧹 {file_path} has been sorted.")
             return True
-        LOGGER.info(f"✅ {file_path} was already sorted. No changes made.")
     except json.JSONDecodeError:
         LOGGER.exception(f"❌ Invalid JSON in {file_path}")
         return False
@@ -75,6 +84,7 @@ def sort_json(  # noqa: PLR0911
         LOGGER.exception(f"❌ Could not process {file_path}")
         return False
     else:
+        LOGGER.info(f"✅ {file_path} is already sorted.")
         return True
 
 
@@ -85,9 +95,15 @@ def main() -> None:
     parser.add_argument(
         "--check", action="store_true", help="Check if files are sorted"
     )
+    parser.add_argument(
+        "--diff",
+        action="store_true",
+        help="Show diff when files are not sorted (only with --check)",
+    )
     args = parser.parse_args()
 
     all_sorted = True
+
     for file in args.files:
         file_path = Path(file)
         if not file_path.exists():
@@ -95,12 +111,12 @@ def main() -> None:
             all_sorted = False
             continue
 
-        result = sort_json(file_path, check_only=args.check)
+        result = sort_json(file_path, check_only=args.check, show_diff=args.diff)
         if not result:
             all_sorted = False
 
-        if not all_sorted:
-            sys.exit(1)
+    if not all_sorted:
+        sys.exit(1)
 
 
 if __name__ == "__main__":
