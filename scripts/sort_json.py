@@ -70,11 +70,7 @@ def sort_json(
                     )
                     diff_output = "\n".join(diff)
                     if diff_output.strip():
-                        LOGGER.info(
-                            f"🔍 Diff for {file_path}\n"
-                            f"{'─' * (len(str(file_path)) + 14)}\n"
-                            f"{diff_output}\n"
-                        )
+                        LOGGER.info(f"🔍 Diff for {file_path}\n{diff_output}\n")
                 return False
             with Path.open(file_path, "w") as file:
                 json.dump(sorted_data, file, indent=2)
