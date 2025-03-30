@@ -5,6 +5,10 @@ import os
 import sys
 from pathlib import Path
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
 PLUGIN_LIST_FILE = "plugins.json"
 OUTPUT_DIR = "output/plugin"
