@@ -70,8 +70,8 @@ def sort_json(
                     )
                     diff_output = "\n".join(diff)
                     if diff_output.strip():
-                        LOGGER.warning(
-                            f"\n🔍 Diff for {file_path}\n"
+                        LOGGER.info(
+                            f"🔍 Diff for {file_path}\n"
                             f"{'─' * (len(str(file_path)) + 14)}\n"
                             f"{diff_output}\n"
                         )
