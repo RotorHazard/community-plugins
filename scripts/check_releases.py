@@ -8,6 +8,9 @@ import re
 import sys
 
 from aiogithubapi import GitHubAPI, GitHubException
+from dotenv import load_dotenv
+
+load_dotenv()
 
 REPO_REGEX = re.compile(r"^[a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-]+$")
 
