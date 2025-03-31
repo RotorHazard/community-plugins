@@ -105,9 +105,12 @@ RotorHazard relies on versioned releases to check for updates and ensure users c
 
 - Use [GitHub Releases](https://docs.github.com/en/repositories/releasing-projects-on-github/managing-releases-in-a-repository) to create a release.
 - The release tag must match the `version` field in `manifest.json`.
+    - Don't forget to bump the version in `manifest.json` before creating a new release.
 - Each new version must be published as a separate release to enable proper update detection.
 - You can also add the plugin code as a ZIP file to the release assets.
     - If you do this, you must include the `zip_filename` field in `manifest.json`, specifying the exact filename of the ZIP file.
+
+Please note that if there is a mismatch between the release tag and the `version` field in `manifest.json`, the plugin will be temporarily skipped in the metadata upload until it is fixed.
 
 By following this approach, users will automatically be noticed when a new version of your plugin is available for installation.
 
