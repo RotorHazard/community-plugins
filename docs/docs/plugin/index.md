@@ -18,7 +18,7 @@ For your repository to be added, several criteria need to be met. This guide wil
 4. Add [RHFest](https://github.com/RotorHazard/rhfest-action) validation action to your repository and make sure it passes.
 5. Publish at least 1 [release](#github-releases), this is required for the CI checks.
 
-!!! warning "Clarification on point 2"
+!!! info "Clarification on point 2"
     The source code of the plugin must be available and not compiled in a way that prevents users from viewing the code. This is to ensure transparency and allow users to review the code for security and functionality. However, in specific cases limited exceptions may be made on an individually-reviewed basis.
 
     If you have a valid reason to keep part of the code private, please contact us to discuss your situation. We will evaluate your request and determine if an exception can be granted.
