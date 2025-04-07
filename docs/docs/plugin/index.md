@@ -10,12 +10,18 @@ RotorHazard encouraged community-driven plugin development, making it easy to ex
 
 For your repository to be added, several criteria need to be met. This guide will help you prepare your repository and add it to the community plugins database.
 
-### General
+### General requirements
 
-- The repository must be public.
-- A plugin is always free to use for all types of events.
-- Add [RHFest](https://github.com/RotorHazard/rhfest-action) validation action to your repository and make sure it passes.
-- Publish at least 1 [release](#github-releases), this is required for the CI checks.
+1. The repository must be public.
+2. The source code of the plugin must be available in the repository.
+3. A plugin is always free to use for all types of events.
+4. Add [RHFest](https://github.com/RotorHazard/rhfest-action) validation action to your repository and make sure it passes.
+5. Publish at least 1 [release](#github-releases), this is required for the CI checks.
+
+!!! info "Clarification on point 2"
+    The source code of the plugin must be available and not compiled in a way that prevents users from viewing the code. This is to ensure transparency and allow users to review the code for security and functionality. However, in specific cases limited exceptions may be made on an individually-reviewed basis.
+
+    If you have a valid reason to keep part of the code private, please contact us to discuss your situation. We will evaluate your request and determine if an exception can be granted.
 
 ### Repository structure
 
@@ -99,9 +105,12 @@ RotorHazard relies on versioned releases to check for updates and ensure users c
 
 - Use [GitHub Releases](https://docs.github.com/en/repositories/releasing-projects-on-github/managing-releases-in-a-repository) to create a release.
 - The release tag must match the `version` field in `manifest.json`.
+    - Don't forget to bump the version in `manifest.json` before creating a new release.
 - Each new version must be published as a separate release to enable proper update detection.
 - You can also add the plugin code as a ZIP file to the release assets.
     - If you do this, you must include the `zip_filename` field in `manifest.json`, specifying the exact filename of the ZIP file.
+
+Please note that if there is a mismatch between the release tag and the `version` field in `manifest.json`, the plugin will be temporarily skipped in the metadata upload until it is fixed.
 
 By following this approach, users will automatically be noticed when a new version of your plugin is available for installation.
 
