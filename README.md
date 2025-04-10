@@ -4,7 +4,7 @@ This project contains the database generation code for the list of community plu
 
 ## Documentation
 
-The documentation for this project is available at [RotorHazard Community Plugins](https://community-plugins.rotorhazard.com/).
+The documentation for this project is available at [RotorHazard Community Plugins](https://rotorhazard.github.io/community-plugins).
 
 ### Before submitting
 
