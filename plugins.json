@@ -9,5 +9,6 @@
   "jrwrodgers/event_plots",
   "L1cardo/RH-Last-Race-Exporter",
   "L1cardo/RH-Pilot-CSV-Importer",
-  "L1cardo/RH-Pilot-Local-Importer"
+  "L1cardo/RH-Pilot-Local-Importer",
+  "RotorHazard/Connector-FPVTrackSide"
 ]
