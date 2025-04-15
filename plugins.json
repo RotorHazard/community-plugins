@@ -12,5 +12,6 @@
   "L1cardo/RH-Pilot-CSV-Importer",
   "L1cardo/RH-Pilot-Local-Importer",
   "RotorHazard/Connector-FPVTrackSide",
-  "vikibaarathi/rh-velocidrone"
+  "vikibaarathi/rh-velocidrone",
+  "vikibaarathi/pilots-from-google-sheets"
 ]
