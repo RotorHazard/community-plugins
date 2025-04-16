@@ -12,6 +12,9 @@
   "L1cardo/RH-Pilot-CSV-Importer",
   "L1cardo/RH-Pilot-Local-Importer",
   "RotorHazard/Connector-FPVTrackSide",
+  "vikibaarathi/heat-gen-eight-double-elim",
   "vikibaarathi/pilots-from-google-sheets",
+  "vikibaarathi/RHCloudlink-plugin",
   "vikibaarathi/rh-velocidrone"
+  
 ]
