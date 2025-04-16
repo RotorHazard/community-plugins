@@ -13,6 +13,7 @@
   "L1cardo/RH-Pilot-Local-Importer",
   "RotorHazard/Connector-FPVTrackSide",
   "vikibaarathi/pilots-from-google-sheets",
-  "vikibaarathi/RHCloudlink-plugin",
-  "vikibaarathi/rh-velocidrone"
+  "vikibaarathi/rh-velocidrone",
+  "vikibaarathi/RHCloudlink-plugin"
+
 ]
