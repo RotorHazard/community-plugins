@@ -112,8 +112,6 @@ jobs:
     name: Publish RHCS data
     needs: generate-metadata
     runs-on: ubuntu-latest
-    environment:
-      name: plugin
     steps:
       - name: ⤵️ Check out code
         uses: actions/checkout@v4.2.2
