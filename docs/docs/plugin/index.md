@@ -97,6 +97,8 @@ In your plugin directory, you must have a `manifest.json` file that contains at 
                 - Minimum version: `numpy>=1.21`
                 - Compatible release: `pandas~=1.3.0`
                 - Version exclusion: `scipy!=1.5.2`
+        - **Git repositories (optional):**
+            - ✅ Example: `git+https://github.com/owner/repo.git`
         - ❌ Invalid: `package_name`, `mypackage!!`, `package==`
 
 ### GitHub releases
