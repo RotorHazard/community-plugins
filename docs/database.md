@@ -1,15 +1,16 @@
 ---
 id: plugins
 title: All Plugins
+description: Browse all plugins in the Community Database
 hide:
   - navigation
   - toc
   - footer
 ---
 
-# Browse All Plugins
+# Browse in the Community Plugins Database
 
-On this page, you can browse all the plugins in the RotorHazard Community Database. Use the filters below to find the plugin you're looking for.
+On this page, you can explore all plugins available in the RotorHazard Community Database. Use the filters below to quickly find the plugin you're looking for.
 
 <div id="filter-container">
   <label for="category">Filter by Category:</label>
