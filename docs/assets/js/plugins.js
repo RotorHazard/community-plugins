@@ -18,6 +18,7 @@ async function showAllPlugins() {
 
     const plugins = await fetchPluginData((freshPlugins) => {
         window.allPlugins = freshPlugins;
+        populateCategories(freshPlugins);
         renderPlugins();
     }, true);
 
