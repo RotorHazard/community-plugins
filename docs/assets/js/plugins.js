@@ -16,7 +16,11 @@ async function showAllPlugins() {
 
     container.innerHTML = "<p>Loading all plugins...</p>";
 
-    const plugins = await fetchPluginData();
+    const plugins = await fetchPluginData((freshPlugins) => {
+        window.allPlugins = freshPlugins;
+        renderPlugins();
+    }, true);
+
     if (!plugins || plugins.length === 0) {
         container.innerHTML = "<p>❌ Unable to load plugins.</p>";
         return;
