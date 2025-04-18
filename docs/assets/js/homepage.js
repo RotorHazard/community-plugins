@@ -6,16 +6,26 @@ async function showLatestPlugins() {
 
     container.innerHTML = "<p>Loading latest plugins...</p>";
 
-    const plugins = await fetchPluginData();
-    if (plugins.length === 0) {
+    const plugins = await fetchPluginData(renderLatestPlugins);
+    if (!plugins || plugins.length === 0) {
         container.innerHTML = "<p>❌ Could not load latest plugins</p>";
         return;
     }
 
+    renderLatestPlugins(plugins);
+}
+
+function renderLatestPlugins(plugins) {
+    const container = document.getElementById("plugin-container");
+    if (!container) return;
+
     updatePluginCountBadge(plugins.length);
 
-    // Sort plugins by latest release published
-    const latestPlugins = plugins.sort((a, b) => new Date(b.releases[0].published_at) - new Date(a.releases[0].published_at)).slice(0, window.numberOfPlugins);
+    // Sort plugins by latest release published date
+    const latestPlugins = plugins
+        .sort((a, b) => new Date(b.releases[0].published_at) - new Date(a.releases[0].published_at))
+        .slice(0, window.numberOfPlugins);
+
     container.innerHTML = ""; // Clear oude content
 
     latestPlugins.forEach(plugin => {
