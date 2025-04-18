@@ -12,6 +12,8 @@ async function showLatestPlugins() {
         return;
     }
 
+    updatePluginCountBadge(plugins.length);
+
     // Sort plugins by latest release published
     const latestPlugins = plugins.sort((a, b) => new Date(b.releases[0].published_at) - new Date(a.releases[0].published_at)).slice(0, window.numberOfPlugins);
     container.innerHTML = ""; // Clear oude content
@@ -37,6 +39,13 @@ async function showLatestPlugins() {
 
         container.appendChild(card);
     });
+}
+
+function updatePluginCountBadge(count) {
+    const badge = document.getElementById("plugin-count");
+    if (badge) {
+        badge.innerHTML = `🚀 ${count} plugins added`;
+    }
 }
 
 // Run when MkDocs Material loads a page
