@@ -118,6 +118,11 @@ function renderPlugins() {
         card.setAttribute("role", "button");
         card.tabIndex = 0;
 
+        card.onclick = (e) => {
+            if (e.target.closest("a")) return;
+            window.open(repoUrl, "_blank");
+        };
+
         // Set the card's author link
         const authorLink = manifest.author_uri
             ? `<a href="${manifest.author_uri}" target="_blank">${manifest.author}</a>`
