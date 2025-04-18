@@ -10,6 +10,8 @@ hide:
 
 # RotorHazard Community Plugins
 
+<div id="plugin-count" class="badge-gradient"></div>
+
 Welcome to the RotorHazard Community Plugins! This site provides all the documentation you need to add your RotorHazard plugin to the community database, making it easier for users to install and update your plugin directly through the RotorHazard interface.
 
 ## Latest updated plugins
