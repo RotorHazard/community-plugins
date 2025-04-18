@@ -37,14 +37,23 @@ function renderLatestPlugins(plugins) {
         card.classList.add("plugin-card");
         card.setAttribute("role", "button");
         card.tabIndex = 0;
-        card.onclick = () => window.open(repoUrl, "_blank");
+
+        card.onclick = (e) => {
+            if (e.target.closest("a")) return;
+            window.open(repoUrl, "_blank");
+        };
+
+        // Set the card's author link
+        const authorLink = manifest.author_uri
+            ? `<a href="${manifest.author_uri}" target="_blank">${manifest.author}</a>`
+            : manifest.author;
 
         card.innerHTML = `
             <span class="version-badge">${manifest.version}</span>
             <h2>${manifest.name}</h2>
             <p class="plugin-description">${manifest.description}</p>
             <p class="release-date"><strong>Released:</strong> ${releaseDate}</p>
-            <p><strong>Author:</strong> <a href="${manifest.author_uri}" target="_blank">${manifest.author}</a></p>
+            <p><strong>Author:</strong> ${authorLink}</p>
         `;
 
         container.appendChild(card);
