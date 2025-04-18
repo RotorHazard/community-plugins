@@ -18,6 +18,7 @@ async function showAllPlugins() {
 
     const plugins = await fetchPluginData((freshPlugins) => {
         window.allPlugins = freshPlugins;
+        populateCategories(freshPlugins);
         renderPlugins();
     }, true);
 
@@ -125,8 +126,8 @@ function renderPlugins() {
             <p><strong>Author:</strong> <a href="${manifest.author_uri}" target="_blank">${manifest.author}</a></p>
             <p><strong>Category:</strong> ${manifest.category ? manifest.category.join(', ') : "None"}</p>
             <div class="plugin-footer">
-                ${starCount > 0 ? `<span class="badge badge-stars">⭐ ${starCount} Stars</span>` : ""}
-                ${forkCount > 0 ? `<span class="badge badge-forks">🍴 ${forkCount} Forks</span>` : ""}
+                ${starCount > 0 ? `<span class="badge badge-stars" title="${starCount} stars on GitHub">⭐ ${starCount} Stars</span>` : ""}
+                ${forkCount > 0 ? `<span class="badge badge-forks" title="${forkCount} forks on GitHub">🍴 ${forkCount} Forks</span>` : ""}
             </div>
         `;
 
