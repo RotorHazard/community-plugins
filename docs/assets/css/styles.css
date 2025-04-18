@@ -9,7 +9,7 @@
 
 /* 🌙 Dark Mode */
 [data-md-color-scheme="slate"] {
-  --filter-bg: #2b2b2b;
+  --filter-bg: #1f1f1f;
   --border-color: #444;
   --card-bg: #252526;
   --text-color: #ddd;
@@ -59,6 +59,16 @@
 .plugin-card:hover {
   transform: scale(1.02);
   box-shadow: 4px 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* 🔲 Dark Mode Plugin Card */
+[data-md-color-scheme="slate"] .plugin-card:hover {
+  background-color: #2e2e2e;
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.05);
+}
+
+[data-md-color-scheme="slate"] .plugin-card a {
+  color: #66cfff;
 }
 
 /* 🔖 Version badge (top-right) */
@@ -144,6 +154,19 @@
 .badge-forks:empty {
   display: none;
   visibility: hidden;
+}
+
+/* ─────────────────────────────────────
+  🌓 Dark Mode Badge Contrast Fixes
+────────────────────────────────────── */
+[data-md-color-scheme="slate"] .badge-stars {
+  background-color: #eab308;
+  color: #1a1a1a;
+}
+
+[data-md-color-scheme="slate"] .badge-forks {
+  background-color: #d1d5db;
+  color: #1a1a1a;
 }
 
 /* ─────────────────────────────────────
