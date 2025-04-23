@@ -140,11 +140,17 @@
 /* 🦶 Footer (stars & forks) */
 .plugin-footer {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 8px;
-  justify-content: flex-start;
   margin-top: auto;
   padding-top: 8px;
+}
+
+.footer-left,
+.footer-right {
+  display: flex;
+  gap: 6px;
+  align-items: center;
 }
 
 /* 🏷️ Badges */
@@ -157,12 +163,16 @@
   color: white;
 }
 
+.badge-category {
+  background: #6c757d;
+}
+
 .badge-stars {
   background: #ffc107;
 }
 
 .badge-forks {
-  background: #6c757d;
+  background: #e5e7eb;
 }
 
 .badge-stars:empty,
@@ -185,6 +195,11 @@
 }
 
 [data-md-color-scheme="slate"] .badge-forks {
+  background-color: #374151;
+  color: #f3f4f6;
+}
+
+[data-md-color-scheme="slate"] .badge-category {
   background-color: #d1d5db;
   color: #1a1a1a;
 }

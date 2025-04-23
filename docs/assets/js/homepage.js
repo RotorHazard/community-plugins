@@ -43,17 +43,21 @@ function renderLatestPlugins(plugins) {
             window.open(repoUrl, "_blank");
         };
 
-        // Set the card's author link
-        const authorLink = manifest.author_uri
-            ? `<a href="${manifest.author_uri}" target="_blank">${manifest.author}</a>`
-            : manifest.author;
-
         card.innerHTML = `
             <span class="version-badge">${manifest.version}</span>
             <h2>${manifest.name}</h2>
             <p class="plugin-description">${manifest.description}</p>
             <p class="release-date"><strong>Released:</strong> ${releaseDate}</p>
-            <p><strong>Author:</strong> ${authorLink}</p>
+            <p><strong>Author:</strong> ${
+                manifest.author_uri
+                    ? `<a href="${manifest.author_uri}" target="_blank">${manifest.author}</a>`
+                    : manifest.author
+            }</p>
+            <div class="plugin-footer">
+                <div class="footer-left">
+                    ${manifest.category ? `<span class="badge badge-category">${manifest.category[0]}</span>` : ""}
+                </div>
+            </div>
         `;
 
         container.appendChild(card);

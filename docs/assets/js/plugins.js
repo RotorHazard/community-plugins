@@ -123,20 +123,23 @@ function renderPlugins() {
             window.open(repoUrl, "_blank");
         };
 
-        // Set the card's author link
-        const authorLink = manifest.author_uri
-            ? `<a href="${manifest.author_uri}" target="_blank">${manifest.author}</a>`
-            : manifest.author;
-
         card.innerHTML = `
             <span class="version-badge">${manifest.version}</span>
             <h2>${manifest.name}</h2>
             <p class="plugin-description">${manifest.description}</p>
-            <p><strong>Author:</strong> ${authorLink}</p>
-            <p><strong>Category:</strong> ${manifest.category ? manifest.category.join(', ') : "None"}</p>
+            <p><strong>Author:</strong> ${
+                manifest.author_uri
+                    ? `<a href="${manifest.author_uri}" target="_blank">${manifest.author}</a>`
+                    : manifest.author
+            }</p>
             <div class="plugin-footer">
-                ${starCount > 0 ? `<span class="badge badge-stars" title="${starCount} stars on GitHub">⭐ ${starCount} Stars</span>` : ""}
-                ${forkCount > 0 ? `<span class="badge badge-forks" title="${forkCount} forks on GitHub">🍴 ${forkCount} Forks</span>` : ""}
+                <div class="footer-left">
+                    ${manifest.category ? `<span class="badge badge-category">${manifest.category[0]}</span>` : ""}
+                </div>
+                <div class="footer-right">
+                    ${starCount > 0 ? `<span class="badge badge-stars" title="${starCount} stars">⭐ ${starCount}</span>` : ""}
+                    ${forkCount > 0 ? `<span class="badge badge-forks" title="${forkCount} forks">🍴 ${forkCount}</span>` : ""}
+                </div>
             </div>
         `;
 
