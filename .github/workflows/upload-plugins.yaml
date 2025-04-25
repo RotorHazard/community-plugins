@@ -85,7 +85,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: ⤵️ Download artifacts
-        uses: actions/download-artifact@v4.2.1
+        uses: actions/download-artifact@v4.3.0
         with:
           name: plugin
           path: output
@@ -127,7 +127,7 @@ jobs:
         run: uv sync --no-group dev
 
       - name: ⤵️ Download artifacts
-        uses: actions/download-artifact@v4.2.1
+        uses: actions/download-artifact@v4.3.0
         with:
           name: plugin
           path: output
