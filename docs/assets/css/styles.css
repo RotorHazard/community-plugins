@@ -1,6 +1,6 @@
 /* 🌞 Light Mode Defaults */
 :root {
-  --filter-bg: #f9f9f9;
+  --filter-bg: rgba(255, 255, 255, 0.7);
   --border-color: #ddd;
   --card-bg: #ffffff;
   --text-color: #333;
@@ -9,7 +9,7 @@
 
 /* 🌙 Dark Mode */
 [data-md-color-scheme="slate"] {
-  --filter-bg: #1f1f1f;
+  --filter-bg: rgba(31, 31, 31, 0.8);
   --border-color: #444;
   --card-bg: #252526;
   --text-color: #ddd;
@@ -173,6 +173,8 @@
 
 .badge-forks {
   background: #e5e7eb;
+  color: #1f2937;
+  border: 1px solid #d1d5db;
 }
 
 .badge-stars:empty,
@@ -197,6 +199,7 @@
 [data-md-color-scheme="slate"] .badge-forks {
   background-color: #374151;
   color: #f3f4f6;
+  border: 1px solid #4b5563;
 }
 
 [data-md-color-scheme="slate"] .badge-category {
@@ -209,24 +212,49 @@
 ────────────────────────────────────── */
 #filter-container {
   display: flex;
-  align-items: center;
-  justify-content: center;
+  flex-direction: column;
   gap: 10px;
-  margin-bottom: 15px;
-  padding: 8px;
+  margin-bottom: 20px;
+  padding: 15px;
   background-color: var(--filter-bg);
-  border-radius: 6px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
   box-shadow: 1px 1px 5px rgba(0, 0, 0, 0.1);
   font-size: 0.9rem;
 }
 
-#filter-container label {
+.filter-search {
+  width: 100%;
+}
+
+#search {
+  width: 100%;
+  padding: 8px 10px;
+  font-size: 0.85rem;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background-color: var(--card-bg);
+  color: var(--text-color);
+}
+
+.filter-options {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+}
+
+.filter-group {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 8px;
+}
+
+.filter-group label {
   font-size: 0.85rem;
   font-weight: 500;
   color: var(--text-color);
+  white-space: nowrap;
 }
 
 #category, #sort {
@@ -239,25 +267,29 @@
   cursor: pointer;
 }
 
-#category:hover, #sort:hover {
+#category:hover, #sort:hover, #search:hover {
   border-color: var(--link-color);
 }
 
-#category:focus, #sort:focus {
+#category:focus, #sort:focus, #search:focus {
   outline: 1px solid var(--link-color);
 }
 
 /* 🔧 Mobile adjustments */
 @media (max-width: 768px) {
-  #filter-container {
+  .filter-options {
     flex-direction: column;
     align-items: flex-start;
     gap: 10px;
-    text-align: center;
+  }
+
+  .filter-group {
+    flex-direction: column;
+    align-items: flex-start;
+    width: 100%;
   }
 
   #category, #sort {
     width: 100%;
-    text-align: left;
   }
 }

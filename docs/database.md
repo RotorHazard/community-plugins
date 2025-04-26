@@ -13,18 +13,27 @@ hide:
 On this page, you can explore all plugins available in the RotorHazard Community Database. Use the filters below to quickly find the plugin you're looking for.
 
 <div id="filter-container">
-  <label for="category">Filter by Category:</label>
-  <select id="category">
-    <option value="">All Categories</option>
-  </select>
+  <!-- Search -->
+  <div class="filter-search">
+    <input type="text" id="search" placeholder="Search plugins..." />
+  </div>
 
-  <label for="sort">Sort by:</label>
-  <select id="sort">
-    <option value="latest">Last Updated</option>
-    <option value="name">Name (A-Z)</option>
-    <option value="stars">Star Count</option>
-    <option value="forks">Fork Count</option>
-  </select>
+  <!-- Filter options -->
+  <div class="filter-options">
+    <div class="filter-group">
+      <label for="category">Filter by category</label>
+      <select id="category"></select>
+    </div>
+    <div class="filter-group">
+      <label for="sort">Sort by</label>
+      <select id="sort">
+        <option value="latest">Last Updated</option>
+        <option value="name">Name (A-Z)</option>
+        <option value="stars">Star Count</option>
+        <option value="forks">Fork Count</option>
+      </select>
+    </div>
+  </div>
 </div>
 
 <div id="plugin-container">

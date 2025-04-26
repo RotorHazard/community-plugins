@@ -78,11 +78,15 @@ function renderPlugins() {
 
     container.innerHTML = ""; // Clear previous content
 
-    const sortType = sortSelect.value;
+    const searchQuery = document.getElementById("search")?.value?.toLowerCase() || "";
     const selectedCategory = categorySelect.value;
+    const sortType = sortSelect.value;
 
     let filteredPlugins = window.allPlugins.filter(plugin => {
-        return !selectedCategory || (plugin.manifest.category && plugin.manifest.category.includes(selectedCategory));
+        const matchesCategory = !selectedCategory || (plugin.manifest.category && plugin.manifest.category.includes(selectedCategory));
+        const matchesSearch = plugin.manifest.name.toLowerCase().includes(searchQuery) ||
+            (plugin.manifest.description && plugin.manifest.description.toLowerCase().includes(searchQuery));
+        return matchesCategory && matchesSearch;
     });
 
     // console.log("🔍 Filtering by category:", selectedCategory, filteredPlugins.length);
@@ -189,7 +193,7 @@ function cleanupEventListeners() {
 
 // Update plugins when filter or sort changes
 document.addEventListener("input", (event) => {
-    if (event.target.id === "sort" || event.target.id === "category") {
+    if (["sort", "category", "search"].includes(event.target.id)) {
         window.currentPage = 1;
         renderPlugins();
     }
