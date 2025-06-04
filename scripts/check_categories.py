@@ -71,7 +71,7 @@ def check_repository_in_categories(repo: str, action: str, categories_file: str)
     return 0
 
 
-def check_categories_plugins_sync(categories_file: str, plugins_file: str) -> int:
+def check_categories_plugins_sync(categories_file: str, plugins_file: str) -> int:  # noqa: PLR0911, PLR0912
     """Check if all repositories in categories.json exist in plugins.json.
 
     Args:
@@ -88,15 +88,27 @@ def check_categories_plugins_sync(categories_file: str, plugins_file: str) -> in
     try:
         with Path(plugins_file).open(encoding="utf-8") as pf:
             plugins_list = set(json.load(pf))
+    except FileNotFoundError:
+        LOGGER.exception(f"Could not find '{plugins_file}'. Ensure it exists.")
+        return 1
+    except json.JSONDecodeError:
+        LOGGER.exception(f"Invalid JSON format in '{plugins_file}'")
+        return 1
     except Exception:
-        LOGGER.exception("Could not read or parse plugins.json")
+        LOGGER.exception(f"Unexpected error reading '{plugins_file}'")
         return 1
 
     try:
         with Path(categories_file).open(encoding="utf-8") as cf:
             categories_data = json.load(cf)
+    except FileNotFoundError:
+        LOGGER.exception(f"Could not find '{categories_file}'. Ensure it exists.")
+        return 1
+    except json.JSONDecodeError:
+        LOGGER.exception(f"Invalid JSON format in '{categories_file}'")
+        return 1
     except Exception:
-        LOGGER.exception("Could not read or parse categories.json")
+        LOGGER.exception(f"Unexpected error reading '{categories_file}'")
         return 1
 
     # Flatten all categorized repositories
