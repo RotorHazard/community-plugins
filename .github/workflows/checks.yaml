@@ -12,10 +12,12 @@ env:
   VERSION: "v1"
   DEFAULT_PYTHON: "3.13"
 
+# Ensure only one workflow runs at a time for the same branch
 concurrency:
   group: checks-${{ github.ref }}
   cancel-in-progress: true
 
+# Permissions for the workflow
 permissions:
   contents: read
 
