@@ -12,10 +12,12 @@ env:
   VERSION: "v1"
   DEFAULT_PYTHON: "3.13"
 
+# Ensure only one workflow runs at a time for the same branch
 concurrency:
   group: checks-${{ github.ref }}
   cancel-in-progress: true
 
+# Permissions for the workflow
 permissions:
   contents: read
 
@@ -75,6 +77,26 @@ jobs:
             exit 1
           fi
 
+  categories:
+    name: Category validation
+    needs: preflight
+    runs-on: ubuntu-latest
+    steps:
+      - name: ⤵️ Check out code
+        uses: actions/checkout@v4.2.2
+      - name: 🏗 Set up UV
+        uses: astral-sh/setup-uv@v6.1.0
+        with:
+          version: "latest"
+          python-version: ${{ env.DEFAULT_PYTHON }}
+          enable-cache: true
+      - name: 🏗 Install project dependencies
+        run: uv sync --no-group dev
+      - name: 🚀 Run validation
+        run: uv run python scripts/check_categories.py --action "${{ needs.preflight.outputs.action }}"
+        env:
+          REPOSITORY: ${{ needs.preflight.outputs.repository }}
+
   releases:
     name: Release validation
     if: ${{ needs.preflight.outputs.action == 'add' }}
@@ -83,17 +105,14 @@ jobs:
     steps:
       - name: ⤵️ Check out code
         uses: actions/checkout@v4.2.2
-
       - name: 🏗 Set up UV
         uses: astral-sh/setup-uv@v6.1.0
         with:
           version: "latest"
           python-version: ${{ env.DEFAULT_PYTHON }}
           enable-cache: true
-
       - name: 🏗 Install project dependencies
         run: uv sync --no-group dev
-
       - name: 🚀 Run validation
         run: uv run python scripts/check_releases.py --repository="${{ needs.preflight.outputs.repository }}"
         env:
@@ -107,24 +126,20 @@ jobs:
     steps:
       - name: ⤵️ Check out code
         uses: actions/checkout@v4.2.2
-
       - name: 🏗 Set up UV
         uses: astral-sh/setup-uv@v6.1.0
         with:
           version: "latest"
           python-version: ${{ env.DEFAULT_PYTHON }}
           enable-cache: true
-
       - name: 🏗 Install project dependencies
         run: uv sync --no-group dev
-
       - name: ⤵️ Download data from Cloudflare R2
         run: |
           uv run aws s3 cp s3://rotorhazard-community-plugins/${{ env.VERSION }}/removed/repositories.json ./repositories.json --endpoint-url=${{ secrets.CF_R2_ENDPOINT }} || echo "[]" > repositories.json
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.CF_R2_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.CF_R2_SECRET_ACCESS_KEY }}
-
       - name: 🚀 Run validation
         run: uv run python scripts/check_removed.py --data-file repositories.json
         env:
@@ -138,6 +153,5 @@ jobs:
     steps:
       - name: ⤵️ Clone Added Plugin Repository
         run: git clone --depth 1 "https://github.com/${{ needs.preflight.outputs.repository }}" .
-
       - name: 🚀 Run RHFest Validation
         uses: docker://ghcr.io/rotorhazard/rhfest-action:v2.1.2
