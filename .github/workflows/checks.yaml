@@ -40,40 +40,26 @@ jobs:
 
       - name: 🚀 Determine Repository Changes
         id: check
-        run: |
-          # Get the previous plugins.json from main branch
-          git show origin/main:plugins.json > plugins_old.json
 
-          # Debug: Show the contents of old and new files
-          echo "Contents of plugins_old.json:"
-          cat plugins_old.json
-
-          echo "Contents of plugins.json:"
-          cat plugins.json
-
-          # Compare old and new plugins.json
-          ADDED_REPOS=$(jq -r --slurp '.[1] - .[0] | .[]' plugins_old.json plugins.json)
-          REMOVED_REPOS=$(jq -r --slurp '.[0] - .[1] | .[]' plugins_old.json plugins.json)
-
-          ADDED_COUNT=$(echo "$ADDED_REPOS" | sed '/^\s*$/d' | wc -l)
-          REMOVED_COUNT=$(echo "$REMOVED_REPOS" | sed '/^\s*$/d' | wc -l)
-
-          if [ "$ADDED_COUNT" -eq 1 ] && [ "$REMOVED_COUNT" -eq 0 ]; then
-            echo "✅ One repository added: $ADDED_REPOS"
-            echo "repository=$(echo "$ADDED_REPOS" | tr -d '"')" >> $GITHUB_OUTPUT
-            echo "action=add" >> $GITHUB_OUTPUT
-          elif [ "$ADDED_COUNT" -eq 0 ] && [ "$REMOVED_COUNT" -eq 1 ]; then
-            echo "✅ One repository removed: $REMOVED_REPOS"
-            echo "repository=$(echo "$REMOVED_REPOS" | tr -d '"')" >> $GITHUB_OUTPUT
-            echo "action=remove" >> $GITHUB_OUTPUT
-          else
-            echo "::error::PR must add or remove exactly one repository."
-            echo "Added repositories: $ADDED_REPOS"
-            echo "Removed repositories: $REMOVED_REPOS"
-            echo "Added count: $ADDED_COUNT"
-            echo "Removed count: $REMOVED_COUNT"
-            exit 1
-          fi
+    categories:
+    name: Category validation
+    needs: preflight
+    runs-on: ubuntu-latest
+    steps:
+      - name: ⤵️ Check out code
+        uses: actions/checkout@v4.2.2
+      - name: 🏗 Set up UV
+        uses: astral-sh/setup-uv@v6.1.0
+        with:
+          version: "latest"
+          python-version: ${{ env.DEFAULT_PYTHON }}
+          enable-cache: true
+      - name: 🏗 Install project dependencies
+        run: uv sync --no-group dev
+      - name: 🚀 Run validation
+        run: uv run python scripts/check_categories.py --action "${{ needs.preflight.outputs.action }}"
+        env:
+          REPOSITORY: ${{ needs.preflight.outputs.repository }}
 
   releases:
     name: Release validation
@@ -83,17 +69,14 @@ jobs:
     steps:
       - name: ⤵️ Check out code
         uses: actions/checkout@v4.2.2
-
       - name: 🏗 Set up UV
         uses: astral-sh/setup-uv@v6.1.0
         with:
           version: "latest"
           python-version: ${{ env.DEFAULT_PYTHON }}
           enable-cache: true
-
       - name: 🏗 Install project dependencies
         run: uv sync --no-group dev
-
       - name: 🚀 Run validation
         run: uv run python scripts/check_releases.py --repository="${{ needs.preflight.outputs.repository }}"
         env:
@@ -107,24 +90,20 @@ jobs:
     steps:
       - name: ⤵️ Check out code
         uses: actions/checkout@v4.2.2
-
       - name: 🏗 Set up UV
         uses: astral-sh/setup-uv@v6.1.0
         with:
           version: "latest"
           python-version: ${{ env.DEFAULT_PYTHON }}
           enable-cache: true
-
       - name: 🏗 Install project dependencies
         run: uv sync --no-group dev
-
       - name: ⤵️ Download data from Cloudflare R2
         run: |
           uv run aws s3 cp s3://rotorhazard-community-plugins/${{ env.VERSION }}/removed/repositories.json ./repositories.json --endpoint-url=${{ secrets.CF_R2_ENDPOINT }} || echo "[]" > repositories.json
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.CF_R2_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.CF_R2_SECRET_ACCESS_KEY }}
-
       - name: 🚀 Run validation
         run: uv run python scripts/check_removed.py --data-file repositories.json
         env:
@@ -138,6 +117,5 @@ jobs:
     steps:
       - name: ⤵️ Clone Added Plugin Repository
         run: git clone --depth 1 "https://github.com/${{ needs.preflight.outputs.repository }}" .
-
       - name: 🚀 Run RHFest Validation
         uses: docker://ghcr.io/rotorhazard/rhfest-action:v2.1.2
