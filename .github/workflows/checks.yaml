@@ -41,7 +41,7 @@ jobs:
       - name: 🚀 Determine Repository Changes
         id: check
 
-    categories:
+  categories:
     name: Category validation
     needs: preflight
     runs-on: ubuntu-latest
