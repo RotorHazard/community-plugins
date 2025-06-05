@@ -55,9 +55,10 @@ function renderLatestPlugins(plugins) {
             }</p>
             <div class="plugin-footer">
                 <div class="footer-left">
-                    ${plugin.categories.length > 0
+                    ${
+                        plugin.categories.length > 0
                         ? plugin.categories.map(cat => `<span class="badge badge-category">${cat}</span>`).join(" ")
-                        : ""
+                        : `<span class="badge badge-uncategorized">Uncategorized</span>`
                     }
                 </div>
             </div>

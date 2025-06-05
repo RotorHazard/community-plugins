@@ -43,9 +43,12 @@ function populateCategories(plugins) {
     if (!categorySelect) return;
 
     const categories = new Set();
+    let hasUncategorized = false;
     plugins.forEach(plugin => {
-        if (Array.isArray(plugin.categories)) {
+        if (Array.isArray(plugin.categories) && plugin.categories.length > 0) {
             plugin.categories.forEach(cat => categories.add(cat));
+        } else {
+            hasUncategorized = true;
         }
     });
 
@@ -56,6 +59,12 @@ function populateCategories(plugins) {
         option.textContent = cat;
         categorySelect.appendChild(option);
     });
+    if (hasUncategorized) {
+        const uncategorized = document.createElement("option");
+        uncategorized.value = "__uncategorized__";
+        uncategorized.textContent = "Uncategorized";
+        categorySelect.appendChild(uncategorized);
+    }
 
     // console.log("✅ Categories populated:", Array.from(categories));
 }
@@ -83,9 +92,17 @@ function renderPlugins() {
     const sortType = sortSelect.value;
 
     let filteredPlugins = window.allPlugins.filter(plugin => {
-        const matchesCategory = !selectedCategory || (plugin.categories && plugin.categories.includes(selectedCategory));
-        const matchesSearch = plugin.manifest.name.toLowerCase().includes(searchQuery) ||
-            (plugin.manifest.description && plugin.manifest.description.toLowerCase().includes(searchQuery));
+        let matchesCategory = true;
+        if (selectedCategory) {
+            if (selectedCategory === "__uncategorized__") {
+                matchesCategory = plugin.categories.length === 0;
+            } else {
+                matchesCategory = plugin.categories && plugin.categories.includes(selectedCategory);
+            }
+        }
+        const manifest = plugin.manifest;
+        const matchesSearch = manifest.name.toLowerCase().includes(searchQuery) ||
+            (manifest.description && manifest.description.toLowerCase().includes(searchQuery));
         return matchesCategory && matchesSearch;
     });
 
@@ -138,9 +155,10 @@ function renderPlugins() {
             }</p>
             <div class="plugin-footer">
                 <div class="footer-left">
-                    ${plugin.categories.length > 0
+                    ${
+                        plugin.categories.length > 0
                         ? plugin.categories.map(cat => `<span class="badge badge-category">${cat}</span>`).join(" ")
-                        : ""
+                        : `<span class="badge badge-uncategorized">Uncategorized</span>`
                     }
                 </div>
                 <div class="footer-right">
