@@ -12,12 +12,10 @@ env:
   VERSION: "v1"
   DEFAULT_PYTHON: "3.13"
 
-# Ensure only one workflow runs at a time for the same branch
 concurrency:
   group: checks-${{ github.ref }}
   cancel-in-progress: true
 
-# Permissions for the workflow
 permissions:
   contents: read
 
@@ -33,49 +31,21 @@ jobs:
         uses: actions/checkout@v4.2.2
         with:
           fetch-depth: 1
-
       - name: ⤵️ Fetch main branch plugins.json
         run: git fetch origin main --depth=1
-
-      - name: 🏗 Install JQ
-        run: sudo apt-get update && sudo apt-get install -y jq
-
+      - name: 🏗 Prepare old plugins.json
+        run: git show origin/main:plugins.json > plugins_old.json
+      - name: 🏗 Set up UV
+        uses: astral-sh/setup-uv@v6.1.0
+        with:
+          version: "latest"
+          python-version: ${{ env.DEFAULT_PYTHON }}
+          enable-cache: true
+      - name: 🏗 Install project dependencies
+        run: uv sync --no-group dev
       - name: 🚀 Determine Repository Changes
         id: check
-        run: |
-          # Get the previous plugins.json from main branch
-          git show origin/main:plugins.json > plugins_old.json
-
-          # Debug: Show the contents of old and new files
-          echo "Contents of plugins_old.json:"
-          cat plugins_old.json
-
-          echo "Contents of plugins.json:"
-          cat plugins.json
-
-          # Compare old and new plugins.json
-          ADDED_REPOS=$(jq -r --slurp '.[1] - .[0] | .[]' plugins_old.json plugins.json)
-          REMOVED_REPOS=$(jq -r --slurp '.[0] - .[1] | .[]' plugins_old.json plugins.json)
-
-          ADDED_COUNT=$(echo "$ADDED_REPOS" | sed '/^\s*$/d' | wc -l)
-          REMOVED_COUNT=$(echo "$REMOVED_REPOS" | sed '/^\s*$/d' | wc -l)
-
-          if [ "$ADDED_COUNT" -eq 1 ] && [ "$REMOVED_COUNT" -eq 0 ]; then
-            echo "✅ One repository added: $ADDED_REPOS"
-            echo "repository=$(echo "$ADDED_REPOS" | tr -d '"')" >> $GITHUB_OUTPUT
-            echo "action=add" >> $GITHUB_OUTPUT
-          elif [ "$ADDED_COUNT" -eq 0 ] && [ "$REMOVED_COUNT" -eq 1 ]; then
-            echo "✅ One repository removed: $REMOVED_REPOS"
-            echo "repository=$(echo "$REMOVED_REPOS" | tr -d '"')" >> $GITHUB_OUTPUT
-            echo "action=remove" >> $GITHUB_OUTPUT
-          else
-            echo "::error::PR must add or remove exactly one repository."
-            echo "Added repositories: $ADDED_REPOS"
-            echo "Removed repositories: $REMOVED_REPOS"
-            echo "Added count: $ADDED_COUNT"
-            echo "Removed count: $REMOVED_COUNT"
-            exit 1
-          fi
+        run: uv run python scripts/check_preflight.py
 
   categories:
     name: Category validation
