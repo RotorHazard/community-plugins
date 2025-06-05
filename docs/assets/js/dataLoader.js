@@ -1,50 +1,64 @@
 const PLUGIN_CACHE_KEY = "pluginDataCache";
 const PLUGIN_CACHE_TS_KEY = "pluginDataCache_ts";
 const PLUGIN_API_URL = "https://rhcp.hazardcreative.com/v1/plugin/data.json";
+const CATEGORIES_API_URL = "https://rhcp.hazardcreative.com/v1/plugin/categories.json";
 const PROXY_URL = "https://api.allorigins.win/get?url=" + encodeURIComponent(PLUGIN_API_URL);
+const CATEGORIES_PROXY_URL = "https://api.allorigins.win/get?url=" + encodeURIComponent(CATEGORIES_API_URL);
 
 async function fetchPluginData(onUpdate = null, forceRefresh = false) {
-    // 1️⃣ Load direct from cache
+    // Check local cache
     const cachedRaw = localStorage.getItem(PLUGIN_CACHE_KEY);
     const cachedTs = localStorage.getItem(PLUGIN_CACHE_TS_KEY);
-    let cachedParsed = [];
-
     if (!forceRefresh && window.pluginData) {
         return window.pluginData;
     }
-
     if (!forceRefresh && cachedRaw && cachedTs) {
         try {
-            cachedParsed = Object.values(JSON.parse(cachedRaw));
+            const cachedParsed = JSON.parse(cachedRaw);
             window.pluginData = cachedParsed;
+            return cachedParsed;
         } catch {
             console.warn("⚠️ Cache corrupted");
         }
     }
 
-    // 2️⃣ Start background fetch
-    fetch(PROXY_URL)
-        .then(res => res.ok ? res.json() : Promise.reject(res))
-        .then(json => {
-            const fetchedData = JSON.parse(json.contents);
-            const fetchedParsed = Object.values(fetchedData);
+    // Fetch both in parallel
+    try {
+        const [pluginJson, catJson] = await Promise.all([
+            fetch(PROXY_URL).then(res => res.ok ? res.json() : Promise.reject(res)),
+            fetch(CATEGORIES_PROXY_URL).then(res => res.ok ? res.json() : Promise.reject(res))
+        ]);
 
-            const cachedString = JSON.stringify(cachedParsed);
-            const fetchedString = JSON.stringify(fetchedParsed);
+        const pluginData = JSON.parse(pluginJson.contents);
+        const categoryData = JSON.parse(catJson.contents);
 
-            if (fetchedString !== cachedString || forceRefresh) {
-                // 3️⃣ Update cache + notify
-                localStorage.setItem(PLUGIN_CACHE_KEY, JSON.stringify(fetchedData));
-                localStorage.setItem(PLUGIN_CACHE_TS_KEY, Date.now().toString());
-                window.pluginData = fetchedParsed;
-                if (typeof onUpdate === "function") onUpdate(fetchedParsed);
-                // console.log("🔄 Plugin data updated from background fetch");
-            } else {
-                // console.log("✅ Plugin data is still up to date");
-            }
-        })
-        .catch(err => console.error("❌ Background fetch failed:", err));
+        // repo → [categories]
+        const repoToCategories = {};
+        Object.entries(categoryData).forEach(([cat, repos]) => {
+            repos.forEach(repo => {
+                if (!repoToCategories[repo]) repoToCategories[repo] = [];
+                repoToCategories[repo].push(cat);
+            });
+        });
 
-    // 4️⃣ Return cached data immediately
-    return cachedParsed;
+        // Combine: plugin.categories (always array)
+        const plugins = Object.values(pluginData).map(plugin => ({
+            ...plugin,
+            categories: repoToCategories[plugin.repository] || [],
+        }));
+
+        // Console log for debug
+        // console.log("🔗 Combined plugin data with categories:", plugins);
+
+        // Update cache + notify
+        localStorage.setItem(PLUGIN_CACHE_KEY, JSON.stringify(plugins));
+        localStorage.setItem(PLUGIN_CACHE_TS_KEY, Date.now().toString());
+        window.pluginData = plugins;
+        if (typeof onUpdate === "function") onUpdate(plugins);
+
+        return plugins;
+    } catch (err) {
+        console.error("❌ Background fetch failed:", err);
+        return [];
+    }
 }
