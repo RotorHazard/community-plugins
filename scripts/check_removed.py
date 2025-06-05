@@ -37,10 +37,13 @@ def check_removed_repository(repo: str, data_file: str) -> None:
             sys.exit(1)
     except FileNotFoundError:
         LOGGER.exception(f"::error::Could not find {data_file}. Ensure it exists.")
+        sys.exit(1)
     except json.JSONDecodeError:
         LOGGER.exception(f"::error::Invalid JSON format in {data_file}")
+        sys.exit(1)
     except Exception:
         LOGGER.exception("Unexpected error occurred")
+        sys.exit(1)
     else:
         LOGGER.info(f"✅ '{repo}' is not removed from the RH Community Plugins DB.")
 
@@ -59,5 +62,6 @@ if __name__ == "__main__":
     repo = os.environ.get("REPOSITORY").lower()
     if not repo:
         LOGGER.error("'REPOSITORY' environment variable is not set or empty.")
+        sys.exit(1)
 
     check_removed_repository(repo, args.data_file)
