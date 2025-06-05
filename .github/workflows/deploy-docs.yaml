@@ -22,6 +22,8 @@ jobs:
   build-docs:
     name: Build documentation
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: ⤵️ Check out code from GitHub
         uses: actions/checkout@v4.2.2
