@@ -18,6 +18,8 @@ jobs:
   ruff:
     name: Ruff
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: ⤵️ Check out code from GitHub
         uses: actions/checkout@v4.2.2
@@ -37,6 +39,8 @@ jobs:
   pre-commit-hooks:
     name: Pre-commit hooks
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: ⤵️ Check out code from GitHub
         uses: actions/checkout@v4.2.2
@@ -64,6 +68,8 @@ jobs:
   jq:
     name: JQ
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: ⤵️ Check out code from GitHub
         uses: actions/checkout@v4.2.2
@@ -73,6 +79,8 @@ jobs:
   jsonschema:
     name: JSON Schema
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: ⤵️ Check out code from GitHub
         uses: actions/checkout@v4.2.2
@@ -95,6 +103,8 @@ jobs:
   sorted:
     name: Sorted
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: ⤵️ Check out code from GitHub
         uses: actions/checkout@v4.2.2
