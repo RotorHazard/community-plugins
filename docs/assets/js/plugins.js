@@ -37,25 +37,34 @@ async function showAllPlugins() {
     renderPlugins();
 }
 
-// Populate the category dropdown dynamically
+// Populate the category dropdown from all unique categories
 function populateCategories(plugins) {
     const categorySelect = document.getElementById("category");
     if (!categorySelect) return;
 
     const categories = new Set();
+    let hasUncategorized = false;
     plugins.forEach(plugin => {
-        if (Array.isArray(plugin.manifest.category)) {
-            plugin.manifest.category.forEach(cat => categories.add(cat));
+        if (Array.isArray(plugin.categories) && plugin.categories.length > 0) {
+            plugin.categories.forEach(cat => categories.add(cat));
+        } else {
+            hasUncategorized = true;
         }
     });
 
     categorySelect.innerHTML = '<option value="">All Categories</option>';
-    categories.forEach(cat => {
+    Array.from(categories).sort().forEach(cat => {
         const option = document.createElement("option");
         option.value = cat;
         option.textContent = cat;
         categorySelect.appendChild(option);
     });
+    if (hasUncategorized) {
+        const uncategorized = document.createElement("option");
+        uncategorized.value = "__uncategorized__";
+        uncategorized.textContent = "Uncategorized";
+        categorySelect.appendChild(uncategorized);
+    }
 
     // console.log("✅ Categories populated:", Array.from(categories));
 }
@@ -76,16 +85,24 @@ function renderPlugins() {
         return;
     }
 
-    container.innerHTML = ""; // Clear previous content
+    container.innerHTML = "";
 
     const searchQuery = document.getElementById("search")?.value?.toLowerCase() || "";
     const selectedCategory = categorySelect.value;
     const sortType = sortSelect.value;
 
     let filteredPlugins = window.allPlugins.filter(plugin => {
-        const matchesCategory = !selectedCategory || (plugin.manifest.category && plugin.manifest.category.includes(selectedCategory));
-        const matchesSearch = plugin.manifest.name.toLowerCase().includes(searchQuery) ||
-            (plugin.manifest.description && plugin.manifest.description.toLowerCase().includes(searchQuery));
+        let matchesCategory = true;
+        if (selectedCategory) {
+            if (selectedCategory === "__uncategorized__") {
+                matchesCategory = plugin.categories.length === 0;
+            } else {
+                matchesCategory = plugin.categories && plugin.categories.includes(selectedCategory);
+            }
+        }
+        const manifest = plugin.manifest;
+        const matchesSearch = manifest.name.toLowerCase().includes(searchQuery) ||
+            (manifest.description && manifest.description.toLowerCase().includes(searchQuery));
         return matchesCategory && matchesSearch;
     });
 
@@ -98,7 +115,7 @@ function renderPlugins() {
         filteredPlugins.sort((a, b) => a.manifest.name.localeCompare(b.manifest.name));
     } else if (sortType === "stars") {
         filteredPlugins.sort((a, b) => (b.stargazers_count || 0) - (a.stargazers_count || 0));
-    }  else if (sortType === "forks") {
+    } else if (sortType === "forks") {
         filteredPlugins.sort((a, b) => (b.forks_count || 0) - (a.forks_count || 0));
     }
 
@@ -138,7 +155,11 @@ function renderPlugins() {
             }</p>
             <div class="plugin-footer">
                 <div class="footer-left">
-                    ${manifest.category ? `<span class="badge badge-category">${manifest.category[0]}</span>` : ""}
+                    ${
+                        plugin.categories.length > 0
+                        ? plugin.categories.map(cat => `<span class="badge badge-category">${cat}</span>`).join(" ")
+                        : `<span class="badge badge-uncategorized">Uncategorized</span>`
+                    }
                 </div>
                 <div class="footer-right">
                     ${starCount > 0 ? `<span class="badge badge-stars" title="${starCount} stars">⭐ ${starCount}</span>` : ""}

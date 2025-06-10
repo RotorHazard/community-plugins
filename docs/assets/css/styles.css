@@ -163,6 +163,11 @@
   color: white;
 }
 
+.badge-uncategorized {
+  color: #b91c1c;
+  border: 1.5px solid #ef4444;
+}
+
 .badge-category {
   background: #6c757d;
 }
@@ -205,6 +210,11 @@
 [data-md-color-scheme="slate"] .badge-category {
   background-color: #d1d5db;
   color: #1a1a1a;
+}
+
+[data-md-color-scheme="slate"] .badge-uncategorized {
+  color: #fca5a5;
+  border: 1.5px solid #ef4444;
 }
 
 /* ─────────────────────────────────────

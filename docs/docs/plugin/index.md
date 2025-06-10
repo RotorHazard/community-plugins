@@ -70,7 +70,6 @@ In your plugin directory, you must have a `manifest.json` file that contains at 
 | `description`            | string    | Yes      | Short description of the plugin                                        |
 | `required_rhapi_version` | string    | Yes      | The minimum version of the RotorHazard API that the plugin requires    |
 | `version`                | string    | Yes      | The version of the plugin (e.g., `1.2.3`, `1.2.3-beta`)                |
-| `category`               | list[str] | Yes      | The category the plugin belongs to ([see list][categories])            |
 | `documentation_uri`      | string    | No       | URL to the documentation                                               |
 | `dependencies`           | list[str] | No       | List of additional PyPI dependencies required for this plugin          |
 | `zip_filename`           | string    | No       | The filename of the ZIP file containing the plugin code (e.g., `plugin.zip`) |
@@ -106,7 +105,7 @@ In your plugin directory, you must have a `manifest.json` file that contains at 
 RotorHazard relies on versioned releases to check for updates and ensure users can install the latest (stable or pre-release) available version.
 
 - Bump the `version` field in `manifest.json` to the upcoming version.
-- Use [GitHub Releases](https://docs.github.com/en/repositories/releasing-projects-on-github/managing-releases-in-a-repository) to create a release.
+- Use [GitHub Releases][github-releases] to create a release.
 - The SemVer part of the release tag must match the `version` field in `manifest.json`.
 - You can also add the plugin code as a ZIP file to the release assets (optional).
     - If you do this, you must include the `zip_filename` field in `manifest.json`, specifying the exact filename of the ZIP file in the release assets.
@@ -124,4 +123,4 @@ By following this approach, users will automatically be noticed when a new versi
 There is a dedicated [template plugin](https://github.com/RotorHazard/plugin-template) repository that demonstrates the structure of a community RotorHazard plugin. You can use it as a reference or fork it as a GitHub template to quickly start developing your own plugin.
 
 <!-- LINKS -->
-[categories]: https://github.com/RotorHazard/community-plugins/blob/main/categories.json
+[github-releases]: https://docs.github.com/en/repositories/releasing-projects-on-github/managing-releases-in-a-repository
