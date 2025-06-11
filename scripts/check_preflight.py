@@ -71,12 +71,13 @@ def main() -> None:
         LOGGER.info(f"✅ One repository removed: {repo}")
         write_github_output(repo, "remove")
     else:
-        LOGGER.error("PR must add or remove exactly one repository.")
-        LOGGER.error(f"Added repositories: {added}")
-        LOGGER.error(f"Removed repositories: {removed}")
-        LOGGER.error(f"Added count: {len(added)}")
-        LOGGER.error(f"Removed count: {len(removed)}")
-        sys.exit(1)
+        LOGGER.info(
+            "No add or remove detected (possibly only categories.json changed)."
+        )
+        LOGGER.info(f"Added repositories: {added}")
+        LOGGER.info(f"Removed repositories: {removed}")
+        LOGGER.info(f"Added count: {len(added)}")
+        LOGGER.info(f"Removed count: {len(removed)}")
 
 
 if __name__ == "__main__":
