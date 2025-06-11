@@ -10,7 +10,7 @@
     "L1cardo/RH-Pilot-Local-Importer",
     "L1cardo/RH-Last-Race-Exporter",
     "L1cardo/RH-Pilot-CSV-Importer",
-    "vikibaarathi/pilots-from-google-sheets",
+    "vikibaarathi/pilots-from-google-sheets"
   ],
   "Heat Generators": [
   ],
@@ -22,7 +22,7 @@
     "HazardCreative/RotorHazard-Class-Rank-Best-Percentage"
   ],
   "Results Analysis": [
-    "jrwrodgers/event_plots",
+    "jrwrodgers/event_plots"
   ],
   "OSD & VRx Control": [
     "i-am-grub/VRxC_ELRS"
