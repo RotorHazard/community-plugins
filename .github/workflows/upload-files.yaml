@@ -22,6 +22,8 @@ jobs:
   upload-files:
     name: Process and Publish data
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: ⤵️ Check out code
         uses: actions/checkout@v4.2.2
