@@ -4,7 +4,8 @@
     "RotorHazard/Connector-FPVTrackSide",
     "FPVScores/FPVScores-Sync",
     "vikibaarathi/rh-velocidrone",
-    "vikibaarathi/RHCloudlink-plugin"
+    "vikibaarathi/RHCloudlink-plugin",
+    "gvotteler/next-rotorhazard-plugin"
   ],
   "Data Import & Export": [
     "L1cardo/RH-Pilot-Local-Importer",
