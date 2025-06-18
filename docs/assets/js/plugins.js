@@ -101,8 +101,11 @@ function renderPlugins() {
             }
         }
         const manifest = plugin.manifest;
-        const matchesSearch = manifest.name.toLowerCase().includes(searchQuery) ||
-            (manifest.description && manifest.description.toLowerCase().includes(searchQuery));
+        // Search logic
+        const matchesSearch = [manifest.name, manifest.description, manifest.author]
+        .filter(Boolean)
+        .some(field => field.toLowerCase().includes(searchQuery));
+
         return matchesCategory && matchesSearch;
     });
 
