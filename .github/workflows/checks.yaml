@@ -28,14 +28,15 @@ jobs:
       repository: ${{ steps.check.outputs.repository }}
       action: ${{ steps.check.outputs.action }}
     steps:
-      - name: ⤵️ Check out code
+      - name: ⤵️ Check out code (PR merge commit)
         uses: actions/checkout@v4.2.2
         with:
-          fetch-depth: 1
-      - name: ⤵️ Fetch main branch plugins.json
-        run: git fetch origin main --depth=1
-      - name: 🏗 Prepare old plugins.json
-        run: git show origin/main:plugins.json > plugins_old.json
+          ref: refs/pull/${{ github.event.pull_request.number }}/merge
+          fetch-depth: 2
+      - name: ⤵️ Fetch base branch plugins.json
+        run: |
+          git fetch origin ${{ github.event.pull_request.base.ref }} --depth=1
+          git show origin/${{ github.event.pull_request.base.ref }}:plugins.json > plugins_old.json
       - name: 🏗 Set up UV
         uses: astral-sh/setup-uv@v6.3.1
         with:
