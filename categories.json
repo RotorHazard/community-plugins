@@ -29,6 +29,7 @@
     "i-am-grub/VRxC_ELRS"
   ],
   "LED Effects": [
+    "HazardCreative/RotorHazard-LED-Callsign-Image"
   ],
   "Streaming & Overlays": [
     "dutchdronesquad/rh-youtube-chapters",
@@ -40,6 +41,7 @@
     "Aaronsss/RH-sensor-monitor",
     "Aaronsss/RH-Settings-Restore",
     "Dutch-Drone-Racing/RH-Plugin-EventAction-UDP-Message",
+    "HazardCreative/RotorHazard-Idle-Race_Handler",
     "i-am-grub/netpack-installer"
   ],
   "Other": [
