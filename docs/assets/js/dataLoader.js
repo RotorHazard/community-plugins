@@ -2,8 +2,6 @@ const PLUGIN_CACHE_KEY = "pluginDataCache";
 const PLUGIN_CACHE_TS_KEY = "pluginDataCache_ts";
 const PLUGIN_API_URL = "https://rhcp.hazardcreative.com/v1/plugin/data.json";
 const CATEGORIES_API_URL = "https://rhcp.hazardcreative.com/v1/plugin/categories.json";
-const PROXY_URL = "https://api.allorigins.win/get?url=" + encodeURIComponent(PLUGIN_API_URL);
-const CATEGORIES_PROXY_URL = "https://api.allorigins.win/get?url=" + encodeURIComponent(CATEGORIES_API_URL);
 
 async function fetchPluginData(onUpdate = null, forceRefresh = false) {
     // Check local cache
@@ -25,12 +23,12 @@ async function fetchPluginData(onUpdate = null, forceRefresh = false) {
     // Fetch both in parallel
     try {
         const [pluginJson, catJson] = await Promise.all([
-            fetch(PROXY_URL).then(res => res.ok ? res.json() : Promise.reject(res)),
-            fetch(CATEGORIES_PROXY_URL).then(res => res.ok ? res.json() : Promise.reject(res))
+            fetch(PLUGIN_API_URL).then(res => res.ok ? res.json() : Promise.reject(res)),
+            fetch(CATEGORIES_API_URL).then(res => res.ok ? res.json() : Promise.reject(res))
         ]);
 
-        const pluginData = JSON.parse(pluginJson.contents);
-        const categoryData = JSON.parse(catJson.contents);
+        const pluginData = pluginJson;
+        const categoryData = catJson;
 
         // repo → [categories]
         const repoToCategories = {};
