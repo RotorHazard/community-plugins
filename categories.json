@@ -1,4 +1,20 @@
 {
+  "Event Management": [
+    "i-am-grub/MultiGP_Toolkit",
+    "RotorHazard/Connector-FPVTrackSide",
+    "FPVScores/FPVScores-Sync",
+    "vikibaarathi/rh-velocidrone",
+    "vikibaarathi/RHCloudlink-plugin",
+    "gvotteler/next-rotorhazard-plugin"
+  ],
+  "Data Import & Export": [
+    "L1cardo/RH-Pilot-Local-Importer",
+    "L1cardo/RH-Last-Race-Exporter",
+    "L1cardo/RH-Pilot-CSV-Importer",
+    "vikibaarathi/pilots-from-google-sheets"
+  ],
+  "Heat Generators": [
+  ],
   "Class Rankings": [
     "FiorixF1/RotorHazard-Class-Rank-Brackets",
     "Aaronsss/cumulative-points-per-heat-RH-plugin",
@@ -6,23 +22,14 @@
     "HazardCreative/RotorHazard-Class-Rank-Heat-Points",
     "HazardCreative/RotorHazard-Class-Rank-Best-Percentage"
   ],
-  "LED Effects": [],
+  "Results Analysis": [
+    "jrwrodgers/event_plots"
+  ],
   "OSD & VRx Control": [
     "i-am-grub/VRxC_ELRS"
   ],
-  "Other": [
-    "Dutch-Drone-Racing/RH-Dropgate"
-  ],
-  "Race Management": [
-    "i-am-grub/MultiGP_Toolkit",
-    "RotorHazard/Connector-FPVTrackSide",
-    "L1cardo/RH-Pilot-Local-Importer",
-    "L1cardo/RH-Last-Race-Exporter",
-    "L1cardo/RH-Pilot-CSV-Importer",
-    "FPVScores/FPVScores-Sync",
-    "vikibaarathi/rh-velocidrone",
-    "vikibaarathi/pilots-from-google-sheets",
-    "vikibaarathi/RHCloudlink-plugin"
+  "LED Effects": [
+    "HazardCreative/RotorHazard-LED-Callsign-Image"
   ],
   "Streaming & Overlays": [
     "dutchdronesquad/rh-youtube-chapters",
@@ -33,8 +40,11 @@
   "Utilities": [
     "Aaronsss/RH-sensor-monitor",
     "Aaronsss/RH-Settings-Restore",
-    "jrwrodgers/event_plots",
     "Dutch-Drone-Racing/RH-Plugin-EventAction-UDP-Message",
+    "HazardCreative/RotorHazard-Idle-Race_Handler",
     "i-am-grub/netpack-installer"
+  ],
+  "Other": [
+    "Dutch-Drone-Racing/RH-Dropgate"
   ]
 }

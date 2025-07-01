@@ -70,12 +70,14 @@ def main() -> None:
         repo = removed[0]
         LOGGER.info(f"✅ One repository removed: {repo}")
         write_github_output(repo, "remove")
+    elif len(added) == 0 and len(removed) == 0:
+        LOGGER.info("No changes to plugins.json detected.")
     else:
-        LOGGER.error("PR must add or remove exactly one repository.")
-        LOGGER.error(f"Added repositories: {added}")
-        LOGGER.error(f"Removed repositories: {removed}")
-        LOGGER.error(f"Added count: {len(added)}")
-        LOGGER.error(f"Removed count: {len(removed)}")
+        LOGGER.warning("⚠️ PR must add or remove exactly one repository.")
+        LOGGER.info(f"Added repositories: {added}")
+        LOGGER.info(f"Removed repositories: {removed}")
+        LOGGER.info(f"Added count: {len(added)}")
+        LOGGER.info(f"Removed count: {len(removed)}")
         sys.exit(1)
 
 

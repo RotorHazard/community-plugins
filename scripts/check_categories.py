@@ -71,7 +71,7 @@ def check_repository_in_categories(repo: str, action: str, categories_file: str)
     return 0
 
 
-def check_categories_plugins_sync(categories_file: str, plugins_file: str) -> int:  # noqa: PLR0911, PLR0912
+def check_categories_plugins_sync(categories_file: str, plugins_file: str) -> int:  # noqa: PLR0911
     """Check if all repositories in categories.json exist in plugins.json.
 
     Args:
@@ -117,23 +117,34 @@ def check_categories_plugins_sync(categories_file: str, plugins_file: str) -> in
         if isinstance(repos, list):
             categorized_repos.update(repos)
 
-    # Check if all categorized repositories exist in plugins.json
-    for repo in sorted(categorized_repos):
-        if repo not in plugins_list:
-            LOGGER.error(
-                f"Repository '{repo}' in categories.json does not exist in plugins.json!"  # noqa: E501
-            )
-            errors += 1
+    # Check 1: Every plugin in plugins.json is categorized
+    uncategorized = sorted(
+        [repo for repo in plugins_list if repo not in categorized_repos]
+    )
+    for repo in uncategorized:
+        LOGGER.error(
+            f"Repository '{repo}' exists in plugins.json but is NOT assigned to any category!"  # noqa: E501
+        )
+        errors += 1
 
-    # Check if all plugins in plugins.json are categorized
-    for repo in sorted(plugins_list):
-        if repo not in categorized_repos:
-            LOGGER.warning(
-                f"Repository '{repo}' exists in plugins.json but is not assigned to any category."  # noqa: E501
-            )
+    # Check 2: Every categorized repo exists in plugins.json
+    orphaned_categories = sorted(
+        [repo for repo in categorized_repos if repo not in plugins_list]
+    )
+    for repo in orphaned_categories:
+        LOGGER.error(
+            f"Repository '{repo}' in categories.json does not exist in plugins.json!"
+        )
+        errors += 1
 
     if errors == 0:
-        LOGGER.info("✅ All repositories in categories.json exist in plugins.json.")
+        LOGGER.info(
+            "✅ All plugins are categorized, and all categories.json entries exist in plugins.json."  # noqa: E501
+        )
+    else:
+        LOGGER.error(
+            f"❌ {errors} error(s): {len(uncategorized)} plugin(s) not categorized, {len(orphaned_categories)} orphaned category entry(ies)."  # noqa: E501
+        )
     return errors
 
 
@@ -153,22 +164,25 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--action",
-        required=True,
         choices=["add", "remove"],
-        help="Action performed: add or remove",
+        help="Action performed: add or remove (optional)",
     )
 
     args = parser.parse_args()
+    error_count = 0
 
-    repo = os.environ.get("REPOSITORY")
-    if not repo:
-        LOGGER.error("'REPOSITORY' environment variable is not set or empty.")
-        sys.exit(1)
-    repo = repo.strip()
+    # Only strict check if action + repo given
+    if args.action:
+        repo = os.environ.get("REPOSITORY")
+        if not repo:
+            LOGGER.error("'REPOSITORY' environment variable is not set.")
+            sys.exit(1)
+        repo = repo.strip()
+        error_count += check_repository_in_categories(
+            repo, args.action, args.categories_file
+        )
 
-    error_count = check_repository_in_categories(
-        repo, args.action, args.categories_file
-    )
+    # Always run sync check
     error_count += check_categories_plugins_sync(
         args.categories_file, args.plugins_file
     )
