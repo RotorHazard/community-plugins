@@ -27,7 +27,8 @@
     "jrwrodgers/event_plots"
   ],
   "OSD & VRx Control": [
-    "i-am-grub/VRxC_ELRS"
+    "i-am-grub/VRxC_ELRS",
+    "RotorHazard/VRxC-ClearView2"
   ],
   "LED Effects": [
     "HazardCreative/RotorHazard-LED-Callsign-Image"
