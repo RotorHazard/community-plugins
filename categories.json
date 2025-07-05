@@ -28,7 +28,8 @@
   ],
   "OSD & VRx Control": [
     "i-am-grub/VRxC_ELRS",
-    "RotorHazard/VRxC-ClearView2"
+    "RotorHazard/VRxC-ClearView2",
+    "RotorHazard/VRxC-Fusion"
   ],
   "LED Effects": [
     "HazardCreative/RotorHazard-LED-Callsign-Image"
