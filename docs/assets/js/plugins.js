@@ -1,10 +1,10 @@
 // Global variables
-window.pluginData = [];
-window.currentPage = 1;
-window.itemsPerPage = 12;
-window.observer = null;
+window.pluginData = window.pluginData || [];
+window.currentPage = window.currentPage || 1;
+window.itemsPerPage = window.itemsPerPage || 20;
+window.observer = window.observer || null;
 
-const formatDate = new Intl.DateTimeFormat("default", { dateStyle: "medium" });
+window.formatDate = window.formatDate || new Intl.DateTimeFormat("default", { dateStyle: "medium" });
 let lastFilterKey = "";
 
 /**

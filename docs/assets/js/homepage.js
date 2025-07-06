@@ -1,5 +1,6 @@
 // How many plugins to show on the homepage
 window.numberOfPlugins = window.numberOfPlugins || 6;
+window.formatDate = window.formatDate || new Intl.DateTimeFormat("default", { dateStyle: "medium" });
 
 /**
  * Fetch and display the latest plugins on the homepage.
@@ -10,7 +11,8 @@ async function showLatestPlugins() {
 
     container.innerHTML = "<p>Loading latest plugins...</p>";
 
-    const plugins = await fetchPluginData();
+    // Fallback op in-memory cache
+    const plugins = window.pluginData?.length ? window.pluginData : await fetchPluginData();
 
     if (!plugins.length) {
         container.innerHTML = "<p>❌ Could not load latest plugins</p>";
@@ -24,8 +26,10 @@ async function showLatestPlugins() {
         .sort((a, b) => new Date(b.releases[0].published_at) - new Date(a.releases[0].published_at))
         .slice(0, window.numberOfPlugins);
 
+    const fragment = document.createDocumentFragment();
+    latestPlugins.forEach(plugin => renderPluginCard(plugin, fragment));
     container.innerHTML = "";
-    latestPlugins.forEach(plugin => renderPluginCard(plugin, container));
+    container.appendChild(fragment);
 }
 
 /**
@@ -35,7 +39,7 @@ function renderPluginCard(plugin, container) {
     const manifest = plugin.manifest;
     const repoUrl = `https://github.com/${plugin.repository}`;
     const releaseDate = plugin.releases?.[0]?.published_at
-        ? new Date(plugin.releases[0].published_at).toLocaleDateString()
+        ? formatDate.format(new Date(plugin.releases[0].published_at))
         : "Unknown";
 
     const card = document.createElement("div");
