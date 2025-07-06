@@ -1,7 +1,7 @@
 // Global variables
 window.pluginData = window.pluginData || [];
 window.currentPage = window.currentPage || 1;
-window.itemsPerPage = window.itemsPerPage || 20;
+window.itemsPerPage = window.itemsPerPage || 12;
 window.observer = window.observer || null;
 
 window.formatDate = window.formatDate || new Intl.DateTimeFormat("default", { dateStyle: "medium" });
