@@ -1,51 +1,48 @@
-// Ensure global variables are only declared once
-window.allPlugins = window.allPlugins || [];
+// Global variables
+window.pluginData = window.pluginData || [];
 window.currentPage = window.currentPage || 1;
 window.itemsPerPage = window.itemsPerPage || 12;
 window.observer = window.observer || null;
 
+window.formatDate = window.formatDate || new Intl.DateTimeFormat("default", { dateStyle: "medium" });
+let lastFilterKey = "";
+
+/**
+ * Fetch and display all plugins in the database view.
+ */
 async function showAllPlugins() {
     const container = document.getElementById("plugin-container");
     const categorySelect = document.getElementById("category");
     const sortSelect = document.getElementById("sort");
 
-    if (!container || !categorySelect || !sortSelect) {
-        // console.warn("⚠️ Skipping plugin loading: Not on database page.");
-        return;
-    }
+    if (!container || !categorySelect || !sortSelect) return;
 
     container.innerHTML = "<p>Loading all plugins...</p>";
 
-    const plugins = await fetchPluginData((freshPlugins) => {
-        window.allPlugins = freshPlugins;
-        populateCategories(freshPlugins);
-        renderPlugins();
-    }, true);
+    await fetchPluginData();
 
-    if (!plugins || plugins.length === 0) {
+    if (!window.pluginData.length) {
         container.innerHTML = "<p>❌ Unable to load plugins.</p>";
         return;
     }
 
-    // Store plugins globally
-    window.allPlugins = plugins;
-
-    // Populate categories **after** plugins are fetched
-    populateCategories(plugins);
-
-    // Render plugins immediately after fetching data
-    renderPlugins();
+    window.currentPage = 1;
+    populateCategories(window.pluginData);
+    requestIdleCallback(() => renderPlugins(), { timeout: 300 });
 }
 
-// Populate the category dropdown from all unique categories
+/**
+ * Populates the category dropdown with unique categories from the plugins.
+ */
 function populateCategories(plugins) {
     const categorySelect = document.getElementById("category");
     if (!categorySelect) return;
 
     const categories = new Set();
     let hasUncategorized = false;
+
     plugins.forEach(plugin => {
-        if (Array.isArray(plugin.categories) && plugin.categories.length > 0) {
+        if (plugin.categories.length > 0) {
             plugin.categories.forEach(cat => categories.add(cat));
         } else {
             hasUncategorized = true;
@@ -53,129 +50,130 @@ function populateCategories(plugins) {
     });
 
     categorySelect.innerHTML = '<option value="">All Categories</option>';
-    Array.from(categories).sort().forEach(cat => {
+    [...categories].sort().forEach(cat => {
         const option = document.createElement("option");
         option.value = cat;
         option.textContent = cat;
         categorySelect.appendChild(option);
     });
+
     if (hasUncategorized) {
         const uncategorized = document.createElement("option");
         uncategorized.value = "__uncategorized__";
         uncategorized.textContent = "Uncategorized";
         categorySelect.appendChild(uncategorized);
     }
-
-    // console.log("✅ Categories populated:", Array.from(categories));
 }
 
-// Function to get the latest release date
-function getLatestReleaseDate(plugin) {
-    return new Date(plugin.releases[0].published_at);
-}
-
-// Render plugins with filtering, sorting, and lazy loading
+/**
+ * Renders the plugin list with filtering, sorting, and lazy loading.
+ */
 function renderPlugins() {
     const container = document.getElementById("plugin-container");
     const categorySelect = document.getElementById("category");
     const sortSelect = document.getElementById("sort");
+    const search = document.getElementById("search");
 
-    if (!container || !categorySelect || !sortSelect) {
-        // console.warn("⚠️ Skipping render: Missing required elements.");
-        return;
-    }
+    if (!container || !categorySelect || !sortSelect) return;
 
-    container.innerHTML = "";
-
-    const searchQuery = document.getElementById("search")?.value?.toLowerCase() || "";
+    const query = search?.value?.toLowerCase() || "";
     const selectedCategory = categorySelect.value;
-    const sortType = sortSelect.value;
+    const sortBy = sortSelect.value;
 
-    let filteredPlugins = window.allPlugins.filter(plugin => {
-        let matchesCategory = true;
-        if (selectedCategory) {
-            if (selectedCategory === "__uncategorized__") {
-                matchesCategory = plugin.categories.length === 0;
-            } else {
-                matchesCategory = plugin.categories && plugin.categories.includes(selectedCategory);
-            }
-        }
+    const filterKey = `${selectedCategory}|${sortBy}|${query}|${window.currentPage}`;
+    if (filterKey === lastFilterKey) return;
+    lastFilterKey = filterKey;
+
+    let filtered = window.pluginData.filter(plugin => {
         const manifest = plugin.manifest;
-        // Search logic
+
+        const matchesCategory = selectedCategory
+            ? selectedCategory === "__uncategorized__"
+                ? plugin.categories.length === 0
+                : plugin.categories.includes(selectedCategory)
+            : true;
+
         const matchesSearch = [manifest.name, manifest.description, manifest.author]
-        .filter(Boolean)
-        .some(field => field.toLowerCase().includes(searchQuery));
+            .filter(Boolean)
+            .some(field => field.toLowerCase().includes(query));
 
         return matchesCategory && matchesSearch;
     });
 
-    // console.log("🔍 Filtering by category:", selectedCategory, filteredPlugins.length);
-
-    // Sorting logic
-    if (sortType === "latest") {
-        filteredPlugins.sort((a, b) => getLatestReleaseDate(b) - getLatestReleaseDate(a));
-    } else if (sortType === "name") {
-        filteredPlugins.sort((a, b) => a.manifest.name.localeCompare(b.manifest.name));
-    } else if (sortType === "stars") {
-        filteredPlugins.sort((a, b) => (b.stargazers_count || 0) - (a.stargazers_count || 0));
-    } else if (sortType === "forks") {
-        filteredPlugins.sort((a, b) => (b.forks_count || 0) - (a.forks_count || 0));
+    if (sortBy === "latest") {
+        filtered.sort((a, b) => new Date(b.releases?.[0]?.published_at || 0) - new Date(a.releases?.[0]?.published_at || 0));
+    } else if (sortBy === "name") {
+        filtered.sort((a, b) => a.manifest.name.localeCompare(b.manifest.name));
+    } else if (sortBy === "stars") {
+        filtered.sort((a, b) => (b.stargazers_count || 0) - (a.stargazers_count || 0));
+    } else if (sortBy === "forks") {
+        filtered.sort((a, b) => (b.forks_count || 0) - (a.forks_count || 0));
     }
 
-    // Lazy load per page
-    const startIndex = (window.currentPage - 1) * window.itemsPerPage;
-    const visiblePlugins = filteredPlugins.slice(0, startIndex + window.itemsPerPage);
+    const start = (window.currentPage - 1) * window.itemsPerPage;
+    const visible = filtered.slice(0, start + window.itemsPerPage);
 
-    if (visiblePlugins.length === 0) {
-        container.innerHTML = "<p>No plugins found for this filter.</p>";
-        return;
-    }
+    container.innerHTML = visible.length ? "" : "<p>No plugins found for this filter.</p>";
 
-    visiblePlugins.forEach(plugin => {
-        const manifest = plugin.manifest;
-        const repoUrl = `https://github.com/${plugin.repository}`;
-        const starCount = plugin.stargazers_count || 0;
-        const forkCount = plugin.forks_count || 0;
-
-        const card = document.createElement("div");
-        card.classList.add("plugin-card");
-        card.setAttribute("role", "button");
-        card.tabIndex = 0;
-
-        card.onclick = (e) => {
-            if (e.target.closest("a")) return;
-            window.open(repoUrl, "_blank");
-        };
-
-        card.innerHTML = `
-            <span class="version-badge">${manifest.version}</span>
-            <h2>${manifest.name}</h2>
-            <p class="plugin-description">${manifest.description}</p>
-            <p><strong>Author:</strong> ${
-                manifest.author_uri
-                    ? `<a href="${manifest.author_uri}" target="_blank">${manifest.author}</a>`
-                    : manifest.author
-            }</p>
-            <div class="plugin-footer">
-                <div class="footer-left">
-                    ${
-                        plugin.categories.length > 0
-                        ? plugin.categories.map(cat => `<span class="badge badge-category">${cat}</span>`).join(" ")
-                        : `<span class="badge badge-uncategorized">Uncategorized</span>`
-                    }
-                </div>
-                <div class="footer-right">
-                    ${starCount > 0 ? `<span class="badge badge-stars" title="${starCount} stars">⭐ ${starCount}</span>` : ""}
-                    ${forkCount > 0 ? `<span class="badge badge-forks" title="${forkCount} forks">🍴 ${forkCount}</span>` : ""}
-                </div>
-            </div>
-        `;
-
-        container.appendChild(card);
-    });
+    const fragment = document.createDocumentFragment();
+    visible.forEach(plugin => renderPluginCard(plugin, fragment));
+    container.appendChild(fragment);
 }
 
-// Detect scrolling for lazy loading
+/**
+ * Generates and appends a plugin card to the container.
+ */
+function renderPluginCard(plugin, container) {
+    const manifest = plugin.manifest;
+    const repoUrl = `https://github.com/${plugin.repository}`;
+    const starCount = plugin.stargazers_count || 0;
+    const forkCount = plugin.forks_count || 0;
+    const releaseDate = plugin.releases?.[0]?.published_at
+        ? formatDate.format(new Date(plugin.releases[0].published_at))
+        : "Unknown";
+
+    const card = document.createElement("div");
+    card.className = "plugin-card";
+    card.setAttribute("role", "button");
+    card.tabIndex = 0;
+
+    card.onclick = (e) => {
+        if (!e.target.closest("a")) {
+            window.open(repoUrl, "_blank");
+        }
+    };
+
+    card.innerHTML = `
+        <span class="version-badge">${manifest.version}</span>
+        <h2>${manifest.name}</h2>
+        <p class="plugin-description">${manifest.description}</p>
+        <p class="release-date"><strong>Released:</strong> ${releaseDate}</p>
+        <p><strong>Author:</strong> ${
+            manifest.author_uri
+                ? `<a href="${manifest.author_uri}" target="_blank">${manifest.author}</a>`
+                : manifest.author
+        }</p>
+        <div class="plugin-footer">
+            <div class="footer-left">
+                ${
+                    plugin.categories.length
+                        ? plugin.categories.map(cat => `<span class="badge badge-category">${cat}</span>`).join(" ")
+                        : `<span class="badge badge-uncategorized">Uncategorized</span>`
+                }
+            </div>
+            <div class="footer-right">
+                ${starCount ? `<span class="badge badge-stars" title="${starCount} stars">⭐ ${starCount}</span>` : ""}
+                ${forkCount ? `<span class="badge badge-forks" title="${forkCount} forks">🍴 ${forkCount}</span>` : ""}
+            </div>
+        </div>
+    `;
+
+    container.appendChild(card);
+}
+
+/**
+ * Scroll handler voor lazy loading.
+ */
 function handleScroll() {
     const scrollY = window.scrollY + window.innerHeight;
     const docHeight = document.documentElement.scrollHeight;
@@ -186,39 +184,50 @@ function handleScroll() {
     }
 }
 
-// Handle MkDocs page navigation
-document$.subscribe(() => {
-    if (document.getElementById("plugin-container")) {
-        // console.log("✅ Detected plugins page, loading plugins...");
-        showAllPlugins();
-
-        // Start observing mutations to detect navigation away from the page
-        window.observer = new MutationObserver(() => {
-            if (!document.getElementById("plugin-container")) {
-                // console.log("🚨 Left plugins page, cleaning up...");
-                cleanupEventListeners();
-            }
-        });
-
-        window.observer.observe(document.body, { childList: true, subtree: true });
-
-        // Add scroll listener for lazy loading
-        window.addEventListener("scroll", handleScroll);
-    } else {
-        // console.log("🚫 Not on plugins page, skipping initialization.");
-    }
-});
-
-// Remove event listeners when leaving plugins page
+/**
+ * Cleanup of event listeners when leaving the page.
+ */
 function cleanupEventListeners() {
     window.removeEventListener("scroll", handleScroll);
     if (window.observer) window.observer.disconnect();
 }
 
-// Update plugins when filter or sort changes
-document.addEventListener("input", (event) => {
+/**
+ * Init when navigating to the plugin page (via MkDocs).
+ */
+document$.subscribe(() => {
+    if (!document.getElementById("plugin-container")) return;
+
+    showAllPlugins();
+
+    window.observer = new MutationObserver(() => {
+        if (!document.getElementById("plugin-container")) {
+            cleanupEventListeners();
+        }
+    });
+
+    window.observer.observe(document.body, { childList: true, subtree: true });
+    window.addEventListener("scroll", handleScroll);
+});
+
+/**
+ * Debounce function to limit how often a function can be called.
+ * Useful for input events to prevent excessive re-renders.
+ */
+function debounce(fn, delay = 200) {
+    let timeout;
+    return (...args) => {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => fn(...args), delay);
+    };
+}
+
+/**
+ * Filters or sorting options change → re-render.
+ */
+document.addEventListener("input", debounce((event) => {
     if (["sort", "category", "search"].includes(event.target.id)) {
         window.currentPage = 1;
         renderPlugins();
     }
-});
+}, 200));
