@@ -1,8 +1,11 @@
 // Global variables
-window.allPlugins = window.allPlugins || [];
-window.currentPage = window.currentPage || 1;
-window.itemsPerPage = window.itemsPerPage || 12;
-window.observer = window.observer || null;
+window.pluginData = [];
+window.currentPage = 1;
+window.itemsPerPage = 12;
+window.observer = null;
+
+const formatDate = new Intl.DateTimeFormat("default", { dateStyle: "medium" });
+let lastFilterKey = "";
 
 /**
  * Fetch and display all plugins in the database view.
@@ -16,18 +19,16 @@ async function showAllPlugins() {
 
     container.innerHTML = "<p>Loading all plugins...</p>";
 
-    const plugins = await fetchPluginData();
+    await fetchPluginData();
 
-    if (!plugins.length) {
+    if (!window.pluginData.length) {
         container.innerHTML = "<p>❌ Unable to load plugins.</p>";
         return;
     }
 
-    window.allPlugins = plugins;
     window.currentPage = 1;
-
-    populateCategories(plugins);
-    renderPlugins();
+    populateCategories(window.pluginData);
+    requestIdleCallback(() => renderPlugins(), { timeout: 300 });
 }
 
 /**
@@ -79,7 +80,11 @@ function renderPlugins() {
     const selectedCategory = categorySelect.value;
     const sortBy = sortSelect.value;
 
-    let filtered = window.allPlugins.filter(plugin => {
+    const filterKey = `${selectedCategory}|${sortBy}|${query}|${window.currentPage}`;
+    if (filterKey === lastFilterKey) return;
+    lastFilterKey = filterKey;
+
+    let filtered = window.pluginData.filter(plugin => {
         const manifest = plugin.manifest;
 
         const matchesCategory = selectedCategory
@@ -108,11 +113,11 @@ function renderPlugins() {
     const start = (window.currentPage - 1) * window.itemsPerPage;
     const visible = filtered.slice(0, start + window.itemsPerPage);
 
-    container.innerHTML = visible.length
-        ? ""
-        : "<p>No plugins found for this filter.</p>";
+    container.innerHTML = visible.length ? "" : "<p>No plugins found for this filter.</p>";
 
-    visible.forEach(plugin => renderPluginCard(plugin, container));
+    const fragment = document.createDocumentFragment();
+    visible.forEach(plugin => renderPluginCard(plugin, fragment));
+    container.appendChild(fragment);
 }
 
 /**
@@ -124,7 +129,7 @@ function renderPluginCard(plugin, container) {
     const starCount = plugin.stargazers_count || 0;
     const forkCount = plugin.forks_count || 0;
     const releaseDate = plugin.releases?.[0]?.published_at
-        ? new Date(plugin.releases[0].published_at).toLocaleDateString()
+        ? formatDate.format(new Date(plugin.releases[0].published_at))
         : "Unknown";
 
     const card = document.createElement("div");
@@ -191,8 +196,7 @@ function cleanupEventListeners() {
  * Init when navigating to the plugin page (via MkDocs).
  */
 document$.subscribe(() => {
-    const onPluginPage = document.getElementById("plugin-container");
-    if (!onPluginPage) return;
+    if (!document.getElementById("plugin-container")) return;
 
     showAllPlugins();
 
@@ -207,11 +211,23 @@ document$.subscribe(() => {
 });
 
 /**
+ * Debounce function to limit how often a function can be called.
+ * Useful for input events to prevent excessive re-renders.
+ */
+function debounce(fn, delay = 200) {
+    let timeout;
+    return (...args) => {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => fn(...args), delay);
+    };
+}
+
+/**
  * Filters or sorting options change → re-render.
  */
-document.addEventListener("input", (event) => {
+document.addEventListener("input", debounce((event) => {
     if (["sort", "category", "search"].includes(event.target.id)) {
         window.currentPage = 1;
         renderPlugins();
     }
-});
+}, 200));
