@@ -157,7 +157,7 @@ class PluginMetadataGenerator:
             )
             content = base64.b64decode(response.data.content).decode("utf-8")
             self.manifest_data = json.loads(content)
-            self.log(f"Successfully fetched manifest.json (branch: {self.used_ref})")
+            self.log(f"✅ Successfully fetched manifest.json (branch: {self.used_ref})")
         except (GitHubNotFoundException, json.JSONDecodeError, GitHubException):
             self.log(
                 f"Failed to fetch `{manifest_path}` from {self.used_ref}.",
