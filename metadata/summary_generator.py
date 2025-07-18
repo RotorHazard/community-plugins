@@ -116,13 +116,14 @@ class SummaryGenerator:
         start_time = perf_counter()
 
         async with GitHubAPI(token=github_token) as github:
-            tasks = [
-                PluginMetadataGenerator(repo).fetch_metadata(github)
-                for repo in self.repos_list
-            ]
+            generators = [PluginMetadataGenerator(repo) for repo in self.repos_list]
+            tasks = [g.fetch_metadata(github) for g in generators]
             results = await asyncio.gather(*tasks)
 
-            for result in results:
+            for generator, result in zip(generators, results, strict=False):
+                # Flush plugin logs (grouped)
+                generator.logger.flush()
+
                 if not result:
                     skipped_plugins += 1
                     continue
@@ -135,12 +136,11 @@ class SummaryGenerator:
                 plugin_data[repo_id] = metadata
                 valid_repositories.append(metadata.get("repository"))
 
-                if (
-                    metadata.get("repository")
-                    != self.repos_list[
-                        valid_repositories.index(metadata.get("repository"))
-                    ]
-                ):
+                # Check if the repository has been renamed
+                original_repo = self.repos_list[
+                    valid_repositories.index(metadata.get("repository"))
+                ]
+                if metadata.get("repository").lower() != original_repo.lower():
                     renamed_plugins += 1
 
         # Save generated metadata to local JSON files
