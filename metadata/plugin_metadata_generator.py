@@ -273,6 +273,7 @@ class PluginMetadataGenerator:
                 if None plugin will be skipped.
 
         """
+        LOGGER.info(f"::group::🔧 Processing {self.repo}")
         try:
             repo_fetched = await self.fetch_repository_info(github)
             if not repo_fetched:
@@ -359,5 +360,8 @@ class PluginMetadataGenerator:
                 f"<{self.repo}> An error occurred during metadata generation."
             )
             return None
+        finally:
+            LOGGER.info("::endgroup::")
+
         LOGGER.info(f"<{self.repo}> 🎉 Metadata successfully generated.")
         return {self.repo_metadata.id: self.metadata}
