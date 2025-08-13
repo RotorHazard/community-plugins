@@ -15,8 +15,35 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  preflight-metadata:
+    name: Preflight
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check GitHub Status
+        run: |
+          set -euo pipefail
+          summary="$(curl -fsSL https://www.githubstatus.com/api/v2/summary.json)"
+
+          # Search for components with status not equal to 'operational'
+          non_ok="$(jq -r '[.components[] | select(.status != "operational") | "\(.name) (\(.status))"] | join(", ")' <<<"$summary")"
+
+          if [ -n "$non_ok" ]; then
+            echo "::error::Not operational: $non_ok"
+            echo "::error::Please check the GitHub status page: https://www.githubstatus.com"
+            exit 1
+          fi
+
+          indicator="$(jq -r '.status.indicator' <<<"$summary")"
+          if [ "$indicator" != "none" ]; then
+            desc="$(jq -r '.status.description' <<<"$summary")"
+            echo "::warning::Indicator=$indicator — $desc"
+          fi
+
+          echo "✅ All GitHub components are operational"
+
   generate-metadata:
     name: Generate plugin metadata
+    needs: preflight-metadata
     runs-on: ubuntu-latest
     permissions:
       contents: read
