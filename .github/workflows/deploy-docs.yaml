@@ -37,7 +37,7 @@ jobs:
       - name: 🏗 Build documentation
         run: uv run mkdocs build
       - name: ⬆️ Upload pages artifacts
-        uses: actions/upload-pages-artifact@v3.0.1
+        uses: actions/upload-pages-artifact@v4.0.0
         with:
           path: site
 
