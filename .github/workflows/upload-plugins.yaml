@@ -18,18 +18,42 @@ jobs:
   preflight-metadata:
     name: Preflight
     runs-on: ubuntu-latest
+    env:
+      REQUIRED_COMPONENTS: '["API Requests","Actions","Git Operations"]'
+      IGNORE_MAINTENANCE: true
+      SHOW_COMPONENTS: true
     steps:
       - name: Check GitHub Status
         run: |
           set -euo pipefail
           summary="$(curl -fsSL https://www.githubstatus.com/api/v2/summary.json)"
 
-          # Search for components with status not equal to 'operational'
-          non_ok="$(jq -r '[.components[] | select(.status != "operational") | "\(.name) (\(.status))"] | join(", ")' <<<"$summary")"
+          if [ "${SHOW_COMPONENTS}" = "true" ]; then
+            echo "📋 Components:"
+            jq -r '.components[] | "\(.name) → \(.status)"' <<<"$summary"
+          fi
+
+          non_ok="$(
+            jq -r \
+              --argjson need "${REQUIRED_COMPONENTS}" \
+              --argjson ignore_maint "${IGNORE_MAINTENANCE}" \
+              '
+              .components
+              | map(select(.name as $n | ($need | index($n))))
+              | map(select(
+                  if $ignore_maint
+                    then (.status != "operational" and .status != "under_maintenance")
+                    else (.status != "operational")
+                  end
+                ))
+              | map("\(.name) (\(.status))")
+              | join(", ")
+              ' <<<"$summary"
+          )"
 
           if [ -n "$non_ok" ]; then
             echo "::error::Not operational: $non_ok"
-            echo "::error::Please check the GitHub status page: https://www.githubstatus.com"
+            echo "::error::See https://www.githubstatus.com"
             exit 1
           fi
 
@@ -39,7 +63,7 @@ jobs:
             echo "::warning::Indicator=$indicator — $desc"
           fi
 
-          echo "✅ All GitHub components are operational"
+          echo "✅ Required GitHub components are operational"
 
   generate-metadata:
     name: Generate plugin metadata
