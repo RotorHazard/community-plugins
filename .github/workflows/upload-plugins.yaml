@@ -18,6 +18,8 @@ jobs:
   preflight-metadata:
     name: Preflight
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     env:
       REQUIRED_COMPONENTS: '["API Requests","Actions","Git Operations"]'
       IGNORE_MAINTENANCE: true
