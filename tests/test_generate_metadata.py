@@ -23,10 +23,13 @@ async def test_rotorhazard_plugin_success(
     """Test the PluginMetadataGenerator class with a successful repository."""
     plugin = PluginMetadataGenerator("owner/repo")
     metadata = await plugin.fetch_metadata(mock_github)
+
     # Check if the metadata is not empty
     assert metadata is not None
     repo_id, data = next(iter(metadata.items()))
+
     assert "manifest" in data
+    assert repo_id == 1
     assert data["manifest"]["name"] == "Test Plugin"
     assert data["manifest"]["domain"] == "testdomain"
 
@@ -57,8 +60,10 @@ async def test_rotor_hazard_plugin_archived(
     plugin = PluginMetadataGenerator("owner/repo_archived")
     metadata = await plugin.fetch_metadata(mock_github)
     assert metadata is not None
-    repo_id, data = next(iter(metadata.items()))
+    repo_name, data = next(iter(metadata.items()))
+
     # Expect the plugin to be archived
+    assert repo_name == "owner/repo_archived"
     assert data.get("archived") is True
 
 
