@@ -43,6 +43,7 @@
   "Utilities": [
     "Aaronsss/RH-sensor-monitor",
     "Aaronsss/RH-Settings-Restore",
+    "Christoph-Hofmann/oled_rotorhazard_display",
     "Dutch-Drone-Racing/RH-Plugin-EventAction-UDP-Message",
     "HazardCreative/RotorHazard-Idle-Race_Handler",
     "i-am-grub/netpack-installer"
