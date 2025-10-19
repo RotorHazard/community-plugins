@@ -63,7 +63,7 @@ jobs:
           git show origin/${{ github.event.pull_request.base.ref }}:plugins.json > plugins_old.json || echo "{}" > plugins_old.json
       - name: 🏗 Set up UV
         if: needs.changes.outputs.relevant == 'true'
-        uses: astral-sh/setup-uv@v7.1.0
+        uses: astral-sh/setup-uv@v7.1.1
         with:
           version: "latest"
           python-version: ${{ env.DEFAULT_PYTHON }}
@@ -92,7 +92,7 @@ jobs:
       - name: ⤵️ Check out code
         uses: actions/checkout@v5.0.0
       - name: 🏗 Set up UV
-        uses: astral-sh/setup-uv@v7.1.0
+        uses: astral-sh/setup-uv@v7.1.1
         with:
           version: "latest"
           python-version: ${{ env.DEFAULT_PYTHON }}
@@ -123,7 +123,7 @@ jobs:
       - name: ⤵️ Check out code
         uses: actions/checkout@v5.0.0
       - name: 🏗 Set up UV
-        uses: astral-sh/setup-uv@v7.1.0
+        uses: astral-sh/setup-uv@v7.1.1
         with:
           version: "latest"
           python-version: ${{ env.DEFAULT_PYTHON }}
@@ -145,7 +145,7 @@ jobs:
       - name: ⤵️ Check out code
         uses: actions/checkout@v5.0.0
       - name: 🏗 Set up UV
-        uses: astral-sh/setup-uv@v7.1.0
+        uses: astral-sh/setup-uv@v7.1.1
         with:
           version: "latest"
           python-version: ${{ env.DEFAULT_PYTHON }}
