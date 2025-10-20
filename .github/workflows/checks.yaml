@@ -33,7 +33,7 @@ jobs:
           fetch-depth: 2
       - name: 🔎 Paths filter
         id: filter
-        uses: dorny/paths-filter@v3
+        uses: dorny/paths-filter@v3.0.2
         with:
           filters: |
             relevant:
