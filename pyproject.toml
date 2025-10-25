@@ -64,7 +64,7 @@ lint.ignore = [
   "COM812",
 
   # Custom ignores
-  "G004",
+  "G004",    # Allow logging with f-strings
 ]
 
 [tool.ruff.lint.flake8-pytest-style]
