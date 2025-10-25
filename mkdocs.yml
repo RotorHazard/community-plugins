@@ -18,6 +18,7 @@ theme:
   name: material
   favicon: assets/img/favicon.ico
   language: en
+  custom_dir: docs/overrides
   icon:
     logo: fontawesome/solid/puzzle-piece
   palette:
@@ -94,8 +95,13 @@ markdown_extensions:
 extra_javascript:
   - assets/js/dataLoader.js
 
+# Extra CSS
+extra_css:
+  - assets/css/pwa.css
+
 # Extra
 extra:
+  manifest: assets/manifest.json
   social:
     - icon: fontawesome/brands/github
       link: https://github.com/RotorHazard
