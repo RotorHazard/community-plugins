@@ -9,7 +9,6 @@ on:
 
 env:
   VERSION: "v1"
-  DEFAULT_PYTHON: "3.14"
 
 concurrency:
   group: checks-${{ github.ref }}
@@ -66,7 +65,6 @@ jobs:
         uses: astral-sh/setup-uv@v7.1.1
         with:
           version: "latest"
-          python-version: ${{ env.DEFAULT_PYTHON }}
           enable-cache: true
       - name: 🏗 Install project dependencies
         if: needs.changes.outputs.relevant == 'true'
@@ -95,7 +93,6 @@ jobs:
         uses: astral-sh/setup-uv@v7.1.1
         with:
           version: "latest"
-          python-version: ${{ env.DEFAULT_PYTHON }}
           enable-cache: true
       - name: 🏗 Install project dependencies
         run: uv sync --no-group dev
@@ -126,7 +123,6 @@ jobs:
         uses: astral-sh/setup-uv@v7.1.1
         with:
           version: "latest"
-          python-version: ${{ env.DEFAULT_PYTHON }}
           enable-cache: true
       - name: 🏗 Install project dependencies
         run: uv sync --no-group dev
@@ -148,7 +144,6 @@ jobs:
         uses: astral-sh/setup-uv@v7.1.1
         with:
           version: "latest"
-          python-version: ${{ env.DEFAULT_PYTHON }}
           enable-cache: true
       - name: 🏗 Install project dependencies
         run: uv sync --no-group dev

@@ -8,7 +8,6 @@ on:
 
 env:
   VERSION: "v1"
-  DEFAULT_PYTHON: "3.13"
 
 concurrency:
   group: generate-metadata
@@ -82,7 +81,6 @@ jobs:
         uses: astral-sh/setup-uv@v7.1.1
         with:
           version: "latest"
-          python-version: ${{ env.DEFAULT_PYTHON }}
           enable-cache: true
 
       - name: 🏗 Install project dependencies
@@ -182,7 +180,6 @@ jobs:
         uses: astral-sh/setup-uv@v7.1.1
         with:
           version: "latest"
-          python-version: ${{ env.DEFAULT_PYTHON }}
           enable-cache: true
 
       - name: 🏗 Install project dependencies
