@@ -70,6 +70,14 @@ nav:
     - docs/plugin/remove.md
   - RHFest Action:
     - docs/rhfest/index.md
+  - FAQ:
+    - faq/index.md
+    - faq/general.md
+    - faq/development.md
+    - faq/publishing.md
+    - faq/troubleshooting.md
+    - faq/categories.md
+    - faq/licensing.md
   - Help:
     - help/index.md
 
@@ -98,6 +106,7 @@ extra_javascript:
 # Extra CSS
 extra_css:
   - assets/css/pwa.css
+  - assets/css/faq.css
 
 # Extra
 extra:
