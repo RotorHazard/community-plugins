@@ -63,7 +63,7 @@ hide:
       <span class="cta-icon">📚</span>
       <div class="cta-text">
         <strong>Browse All Plugins</strong>
-        <p>Explore our complete <a href="database/">plugin directory</a> to find the perfect extension for your setup.</p>
+        <p>Explore our complete <a href="database/">database</a> to find the perfect plugin for your race timer.</p>
       </div>
     </div>
     <div class="cta-item">

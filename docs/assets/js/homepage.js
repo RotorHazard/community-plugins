@@ -96,10 +96,10 @@ function renderPluginCard(plugin, container) {
             <p class="plugin-description">${manifest.description}</p>
             <div class="plugin-metadata">
                 <div class="plugin-metadata-item">
-                    <strong>📅</strong> ${releaseDate}
+                    <strong>📅 Latest release:</strong> ${releaseDate}
                 </div>
                 <div class="plugin-metadata-item">
-                    <strong>👤</strong> ${
+                    <strong>👤 Author:</strong> ${
                         manifest.author_uri
                             ? `<a href="${manifest.author_uri}" target="_blank" onclick="event.stopPropagation();">${manifest.author}</a>`
                             : manifest.author
@@ -144,8 +144,12 @@ function handleCategoryClick(e) {
     // Store the category in sessionStorage for the database page to pick up
     sessionStorage.setItem('filterCategory', category);
 
-    // Navigate to the database page
-    window.location.href = '/database/';
+    // Navigate to the database page using relative path from root
+    // Get the base path (everything before the current page)
+    const pathParts = window.location.pathname.split('/').filter(p => p);
+    const baseDepth = pathParts.length - 1; // -1 for current page
+    const relativePath = '../'.repeat(baseDepth > 0 ? baseDepth : 0) + 'database/';
+    window.location.href = relativePath;
 }
 
 // Run when MkDocs Material loads a page
