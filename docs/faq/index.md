@@ -73,13 +73,13 @@ Check validation, releases, and wait times. [Read more →](troubleshooting.md#m
 ## Additional Resources
 
 <div class="resources-grid">
-  <a href="../docs/plugin/index.md" class="resource-card">
+  <a href="../docs/plugin/" class="resource-card">
     <div class="resource-icon">📚</div>
     <h4>Getting Started Guide</h4>
     <p>Complete guide to plugin requirements</p>
   </a>
 
-  <a href="../docs/plugin/tutorial.md" class="resource-card">
+  <a href="../docs/plugin/tutorial/" class="resource-card">
     <div class="resource-icon">🎓</div>
     <h4>Tutorial</h4>
     <p>Step-by-step plugin development tutorial</p>

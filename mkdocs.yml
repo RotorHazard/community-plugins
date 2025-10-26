@@ -105,7 +105,6 @@ extra_javascript:
 
 # Extra CSS
 extra_css:
-  - assets/css/pwa.css
   - assets/css/faq.css
 
 # Extra
