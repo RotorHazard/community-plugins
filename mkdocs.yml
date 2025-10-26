@@ -62,7 +62,7 @@ plugins:
 
 nav:
   - Home: index.md
-  - Plugin Database: database.md
+  - Plugins Database: database.md
   - Publish a Plugin:
     - Getting started:
       - docs/plugin/index.md
@@ -70,6 +70,14 @@ nav:
     - docs/plugin/remove.md
   - RHFest Action:
     - docs/rhfest/index.md
+  - FAQ:
+    - faq/index.md
+    - faq/general.md
+    - faq/development.md
+    - faq/publishing.md
+    - faq/troubleshooting.md
+    - faq/categories.md
+    - faq/licensing.md
   - Help:
     - help/index.md
 
@@ -97,7 +105,7 @@ extra_javascript:
 
 # Extra CSS
 extra_css:
-  - assets/css/pwa.css
+  - assets/css/faq.css
 
 # Extra
 extra:

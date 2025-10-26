@@ -8,6 +8,38 @@ window.formatDate = window.formatDate || new Intl.DateTimeFormat("default", { da
 let lastFilterKey = "";
 
 /**
+ * Creates skeleton loading cards - Compact design
+ */
+function createSkeletonCards(count = 12) {
+    const fragment = document.createDocumentFragment();
+    for (let i = 0; i < count; i++) {
+        const card = document.createElement("div");
+        card.className = "skeleton-card";
+        card.innerHTML = `
+            <div class="skeleton-card-header">
+                <div class="skeleton skeleton-title"></div>
+                <div class="skeleton skeleton-badge" style="width: 50px; height: 22px; border-radius: 6px;"></div>
+            </div>
+            <div class="skeleton-card-content">
+                <div class="skeleton skeleton-text"></div>
+                <div class="skeleton skeleton-text-short"></div>
+                <div style="margin-top: 2px; padding: 8px 0; border-top: 1px solid rgba(0,0,0,0.06); border-bottom: 1px solid rgba(0,0,0,0.06); display: flex; gap: 10px;">
+                    <div class="skeleton" style="width: 35%; height: 12px; border-radius: 6px;"></div>
+                    <div class="skeleton" style="width: 40%; height: 12px; border-radius: 6px;"></div>
+                </div>
+                <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                    <div class="skeleton skeleton-badge"></div>
+                    <div class="skeleton skeleton-badge"></div>
+                    <div class="skeleton skeleton-badge"></div>
+                </div>
+            </div>
+        `;
+        fragment.appendChild(card);
+    }
+    return fragment;
+}
+
+/**
  * Fetch and display all plugins in the database view.
  */
 async function showAllPlugins() {
@@ -17,7 +49,9 @@ async function showAllPlugins() {
 
     if (!container || !categorySelect || !sortSelect) return;
 
-    container.innerHTML = "<p>Loading all plugins...</p>";
+    // Show skeleton loading
+    container.innerHTML = "";
+    container.appendChild(createSkeletonCards(window.itemsPerPage));
 
     await fetchPluginData();
 
@@ -27,14 +61,26 @@ async function showAllPlugins() {
     }
 
     window.currentPage = 1;
-    populateCategories(window.pluginData);
+
+    populateCategoryDropdown(window.pluginData);
+
+    // Check if there's a filter category in sessionStorage (from clicking a category badge)
+    const filterCategory = sessionStorage.getItem('filterCategory');
+    if (filterCategory) {
+        categorySelect.value = filterCategory;
+        sessionStorage.removeItem('filterCategory'); // Clear it after using
+    }
+
+    // Setup clear search button
+    setupClearSearchButton();
+
     requestIdleCallback(() => renderPlugins(), { timeout: 300 });
 }
 
 /**
- * Populates the category dropdown with unique categories from the plugins.
+ * Populates category dropdown from plugins data
  */
-function populateCategories(plugins) {
+function populateCategoryDropdown(plugins) {
     const categorySelect = document.getElementById("category");
     if (!categorySelect) return;
 
@@ -49,7 +95,10 @@ function populateCategories(plugins) {
         }
     });
 
+    // Keep "All Categories" option, add the rest
+    const currentValue = categorySelect.value;
     categorySelect.innerHTML = '<option value="">All Categories</option>';
+
     [...categories].sort().forEach(cat => {
         const option = document.createElement("option");
         option.value = cat;
@@ -63,6 +112,36 @@ function populateCategories(plugins) {
         uncategorized.textContent = "Uncategorized";
         categorySelect.appendChild(uncategorized);
     }
+
+    // Restore previous value if it exists
+    if (currentValue) {
+        categorySelect.value = currentValue;
+    }
+}
+
+/**
+ * Setup clear search button functionality
+ */
+function setupClearSearchButton() {
+    const searchInput = document.getElementById("search");
+    const clearBtn = document.getElementById("clear-search");
+
+    if (!searchInput || !clearBtn) return;
+
+    searchInput.addEventListener("input", () => {
+        if (searchInput.value.length > 0) {
+            clearBtn.style.display = "flex";
+        } else {
+            clearBtn.style.display = "none";
+        }
+    });
+
+    clearBtn.addEventListener("click", () => {
+        searchInput.value = "";
+        clearBtn.style.display = "none";
+        window.currentPage = 1;
+        renderPlugins();
+    });
 }
 
 /**
@@ -110,6 +189,9 @@ function renderPlugins() {
         filtered.sort((a, b) => (b.forks_count || 0) - (a.forks_count || 0));
     }
 
+    // Update results count
+    updateResultsInfo(filtered.length, window.pluginData.length, selectedCategory !== "", query);
+
     const start = (window.currentPage - 1) * window.itemsPerPage;
     const visible = filtered.slice(0, start + window.itemsPerPage);
 
@@ -118,6 +200,24 @@ function renderPlugins() {
     const fragment = document.createDocumentFragment();
     visible.forEach(plugin => renderPluginCard(plugin, fragment));
     container.appendChild(fragment);
+}
+
+/**
+ * Updates the results count display
+ */
+function updateResultsInfo(filteredCount, totalCount, hasCategoryFilter, query) {
+    const resultsInfo = document.getElementById("results-info");
+    if (!resultsInfo) return;
+
+    if (filteredCount === totalCount) {
+        resultsInfo.textContent = `Showing all ${totalCount} plugins`;
+    } else {
+        const filters = [];
+        if (hasCategoryFilter) filters.push("category filter");
+        if (query) filters.push("search");
+        const filterText = filters.length ? ` (${filters.join(" + ")})` : "";
+        resultsInfo.textContent = `${filteredCount} of ${totalCount} plugins${filterText}`;
+    }
 }
 
 /**
@@ -138,30 +238,37 @@ function renderPluginCard(plugin, container) {
     card.tabIndex = 0;
 
     card.onclick = (e) => {
-        if (!e.target.closest("a")) {
+        // Don't open GitHub if clicking on a link or category badge
+        if (!e.target.closest("a") && !e.target.closest(".clickable-category")) {
             window.open(repoUrl, "_blank");
         }
     };
 
     card.innerHTML = `
-        <span class="version-badge">${manifest.version}</span>
-        <h2>${manifest.name}</h2>
-        <p class="plugin-description">${manifest.description}</p>
-        <p class="release-date"><strong>Released:</strong> ${releaseDate}</p>
-        <p><strong>Author:</strong> ${
-            manifest.author_uri
-                ? `<a href="${manifest.author_uri}" target="_blank">${manifest.author}</a>`
-                : manifest.author
-        }</p>
-        <div class="plugin-footer">
-            <div class="footer-left">
+        <div class="plugin-card-header">
+            <h2>${manifest.name}</h2>
+            <span class="version-badge">v${manifest.version}</span>
+        </div>
+        <div class="plugin-card-content">
+            <p class="plugin-description">${manifest.description}</p>
+            <div class="plugin-metadata">
+                <div class="plugin-metadata-item">
+                    <strong>📅 Latest release:</strong> ${releaseDate}
+                </div>
+                <div class="plugin-metadata-item">
+                    <strong>👤 Author:</strong> ${
+                        manifest.author_uri
+                            ? `<a href="${manifest.author_uri}" target="_blank" onclick="event.stopPropagation();">${manifest.author}</a>`
+                            : manifest.author
+                    }
+                </div>
+            </div>
+            <div class="plugin-footer">
                 ${
                     plugin.categories.length
-                        ? plugin.categories.map(cat => `<span class="badge badge-category">${cat}</span>`).join(" ")
-                        : `<span class="badge badge-uncategorized">Uncategorized</span>`
+                        ? plugin.categories.map(cat => `<span class="badge badge-category clickable-category" data-category="${cat}">${cat}</span>`).join(" ")
+                        : `<span class="badge badge-uncategorized clickable-category" data-category="__uncategorized__">Uncategorized</span>`
                 }
-            </div>
-            <div class="footer-right">
                 ${starCount ? `<span class="badge badge-stars" title="${starCount} stars">⭐ ${starCount}</span>` : ""}
                 ${forkCount ? `<span class="badge badge-forks" title="${forkCount} forks">🍴 ${forkCount}</span>` : ""}
             </div>
@@ -193,12 +300,39 @@ function cleanupEventListeners() {
 }
 
 /**
+ * Handle category badge clicks - filter on the same page
+ */
+function handleCategoryClick(e) {
+    const badge = e.target.closest('.clickable-category');
+    if (!badge) return;
+
+    const category = badge.dataset.category;
+    if (!category) return;
+
+    e.stopPropagation();
+
+    // Update the category dropdown and re-render
+    const categorySelect = document.getElementById("category");
+    if (categorySelect) {
+        categorySelect.value = category;
+        window.currentPage = 1;
+        renderPlugins();
+
+        // Scroll to top of results
+        document.getElementById("search-bar-container")?.scrollIntoView({ behavior: 'smooth' });
+    }
+}
+
+/**
  * Init when navigating to the plugin page (via MkDocs).
  */
 document$.subscribe(() => {
     if (!document.getElementById("plugin-container")) return;
 
     showAllPlugins();
+
+    // Add event listener for category badge clicks
+    document.addEventListener('click', handleCategoryClick);
 
     window.observer = new MutationObserver(() => {
         if (!document.getElementById("plugin-container")) {
