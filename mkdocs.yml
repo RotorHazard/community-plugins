@@ -66,8 +66,9 @@ nav:
   - Publish a Plugin:
     - Getting started:
       - docs/plugin/index.md
-    - docs/plugin/include.md
-    - docs/plugin/remove.md
+    - Include repository: docs/plugin/include.md
+    - Remove repository: docs/plugin/remove.md
+    - Build your first plugin: docs/plugin/tutorial.md
   - RHFest Action:
     - docs/rhfest/index.md
   - FAQ:
