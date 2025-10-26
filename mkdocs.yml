@@ -62,7 +62,7 @@ plugins:
 
 nav:
   - Home: index.md
-  - Plugin Database: database.md
+  - Plugins Database: database.md
   - Publish a Plugin:
     - Getting started:
       - docs/plugin/index.md
