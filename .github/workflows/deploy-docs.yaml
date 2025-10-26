@@ -1,6 +1,6 @@
 ---
 # This workflow will build and deploy the documentation to GitHub Pages
-name: Deployment
+name: Docs deployment
 
 # yamllint disable-line rule:truthy
 on:
@@ -10,6 +10,7 @@ on:
     paths:
       - "docs/**"
       - "mkdocs.yml"
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
