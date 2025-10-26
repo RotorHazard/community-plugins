@@ -219,14 +219,6 @@
   margin-top: auto;
 }
 
-.footer-left,
-.footer-right {
-  display: flex;
-  gap: 6px;
-  align-items: center;
-  flex-wrap: wrap;
-}
-
 /* Badge Base */
 .badge {
   display: inline-flex;

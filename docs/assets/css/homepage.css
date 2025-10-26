@@ -400,7 +400,7 @@ html {
    🎯 Latest Plugins Section - Centered Header
 ────────────────────────────────────── */
 .plugins-section {
-  margin: 48px 0 0 0;
+  margin: 64px 0 0 0;
 }
 
 .section-header {
@@ -609,7 +609,7 @@ html {
   }
 
   .plugins-section {
-    margin: 32px 0 0 0;
+    margin: 48px 0 0 0;
   }
 
   .section-header {
@@ -731,5 +731,5 @@ body h2#latest-updated-plugins {
 }
 
 body .homepage-cta {
-  margin-top: 72px !important;
+  margin-top: 64px !important;
 }
