@@ -23,6 +23,9 @@ To add your plugin to the community plugins database, follow the steps below.
 4. Commit your changes.
 5. Open a pull request and follow the instructions in the PR template.
 
+!!! warning "Use the exact GitHub repository name"
+    Make sure to use the **exact repository name** as it appears on GitHub, including the correct capitalization (e.g., `"JohnDoe/my-plugin"`, not `"johndoe/my-plugin"`). The CI checks will validate this and reject incorrect casing.
+
 ???+ tip "Sort a JSON file"
     There is a special script in the repository that can sort the json files alphabetically for you in case-insensitive order.
 
@@ -40,6 +43,10 @@ To add your plugin to the community plugins database, follow the steps below.
 ## CI Checks
 
 After submitting your pull request, a series of CI checks (pre-flights) will be run to ensure that the repository meets the required standards to be included in the community plugins database. All checks must pass for the repository to be included, unless otherwise agreed.
+
+### Check Repository Name
+
+Validates that the repository name in `plugins.json` and `categories.json` matches the exact casing of the GitHub repository (e.g., `"JohnDoe/my-plugin"` instead of `"johndoe/my-plugin"`). This ensures proper categorization on the website.
 
 ### Check Category
 
