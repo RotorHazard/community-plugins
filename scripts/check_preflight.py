@@ -89,6 +89,31 @@ def write_github_output(repository: str, action: str) -> None:
             print(f"action={action}", file=ghf)
 
 
+async def validate_repo_name(repo: str) -> None:
+    """Validate repository name against GitHub canonical name.
+
+    Args:
+    ----
+        repo (str): Repository name to validate.
+
+    """
+    token = os.getenv("GITHUB_TOKEN")
+    if not token:
+        LOGGER.warning("⚠️ GITHUB_TOKEN not set, skipping canonical name validation")
+        return
+
+    canonical_repo = await get_canonical_repo_name(repo, token)
+    if canonical_repo != repo:
+        LOGGER.error(
+            f"❌ Repository name casing mismatch!\n"
+            f"   In plugins.json: '{repo}'\n"
+            f"   Canonical name:  '{canonical_repo}'\n"
+            f"   Please update plugins.json and categories.json to use '{canonical_repo}'"  # noqa: E501
+        )
+        sys.exit(1)
+    LOGGER.info(f"✅ Repository name casing is correct: {canonical_repo}")
+
+
 async def async_main() -> None:
     """Check for changes in plugins.json files."""
     old_path = Path("plugins_old.json")
@@ -100,26 +125,25 @@ async def async_main() -> None:
     added = list(new_repos - old_repos)
     removed = list(old_repos - new_repos)
 
+    # Check for case-only rename (e.g., johndoe/my-plugin -> JohnDoe/my-plugin)
+    if len(added) == 1 and len(removed) == 1:
+        added_repo = added[0]
+        removed_repo = removed[0]
+
+        if added_repo.lower() == removed_repo.lower():
+            LOGGER.info(
+                f"✅ Repository name casing updated:\n"
+                f"   Old: '{removed_repo}'\n"
+                f"   New: '{added_repo}'"
+            )
+            await validate_repo_name(added_repo)
+            # Don't set any output - this is a rename, not an add/remove
+            return
+
     if len(added) == 1 and len(removed) == 0:
         repo = added[0]
         LOGGER.info(f"✅ One repository added: {repo}")
-
-        # Validate and get canonical repository name from GitHub
-        token = os.getenv("GITHUB_TOKEN")
-        if token:
-            canonical_repo = await get_canonical_repo_name(repo, token)
-            if canonical_repo != repo:
-                LOGGER.error(
-                    f"❌ Repository name casing mismatch!\n"
-                    f"   In plugins.json: '{repo}'\n"
-                    f"   Canonical name:  '{canonical_repo}'\n"
-                    f"   Please update plugins.json and categories.json to use '{canonical_repo}'"  # noqa: E501
-                )
-                sys.exit(1)
-            LOGGER.info(f"✅ Repository name casing is correct: {canonical_repo}")
-        else:
-            LOGGER.warning("⚠️ GITHUB_TOKEN not set, skipping canonical name validation")
-
+        await validate_repo_name(repo)
         write_github_output(repo, "add")
     elif len(added) == 0 and len(removed) == 1:
         repo = removed[0]
