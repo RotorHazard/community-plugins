@@ -19,8 +19,7 @@ theme:
   favicon: assets/img/favicon.ico
   language: en
   custom_dir: docs/overrides
-  icon:
-    logo: fontawesome/solid/puzzle-piece
+  logo: assets/img/logo_light.svg
   palette:
     # Palette toggle for light mode
     - media: "(prefers-color-scheme: light)"
