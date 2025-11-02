@@ -34,16 +34,18 @@ async function fetchPluginData(onUpdate = null, forceRefresh = false) {
         const repoToCategories = {};
         for (const [category, repos] of Object.entries(categoryJson)) {
             for (const repo of repos) {
-                if (!repoToCategories[repo]) {
-                    repoToCategories[repo] = [];
+                // Use lowercase as key for case-insensitive matching
+                const repoLower = repo.toLowerCase();
+                if (!repoToCategories[repoLower]) {
+                    repoToCategories[repoLower] = [];
                 }
-                repoToCategories[repo].push(category);
+                repoToCategories[repoLower].push(category);
             }
         }
 
         const plugins = Object.values(pluginJson).map(plugin => ({
             ...plugin,
-            categories: repoToCategories[plugin.repository] || [],
+            categories: repoToCategories[plugin.repository.toLowerCase()] || [],
         }));
 
         localStorage.setItem(CACHE_KEY, JSON.stringify(plugins));
