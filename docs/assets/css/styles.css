@@ -15,6 +15,18 @@
 }
 
 /* ─────────────────────────────────────
+  🎨 Logo Switching (Light/Dark Mode)
+────────────────────────────────────── */
+/* Switch logo based on color scheme using content property */
+[data-md-color-scheme="default"] .md-logo img {
+  content: url('/community-plugins/assets/img/logo_light.svg');
+}
+
+[data-md-color-scheme="slate"] .md-logo img {
+  content: url('/community-plugins/assets/img/logo_dark.svg');
+}
+
+/* ─────────────────────────────────────
   🌈 Plugin Count Badge
 ────────────────────────────────────── */
 .badge-gradient {
