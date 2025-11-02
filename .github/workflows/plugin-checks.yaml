@@ -73,6 +73,8 @@ jobs:
         if: needs.changes.outputs.relevant == 'true'
         id: check
         run: uv run python scripts/check_preflight.py
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       # Single outputs for downstream jobs
       - name: Set outputs
         id: out
