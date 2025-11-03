@@ -40,6 +40,7 @@ class PluginMetadataGenerator:
     def __init__(self, repo: str) -> None:
         """Initialize the plugin metadata generator."""
         self.repo = repo  # Full repository name (e.g., "owner/repo_name")
+        self.original_repo = repo  # Store the original repository name
         self.domain = None  # Plugin domain folder
         self.metadata = {}
         self.manifest_data = {}
@@ -304,9 +305,11 @@ class PluginMetadataGenerator:
 
             # Check if the repository has been renamed
             full_name = self.repo_metadata.full_name
-            if full_name.lower() != self.repo.lower():
-                self.log(f"Repository renamed to '{full_name}'", logging.WARNING)
-                self.repo = full_name  # Update the repo name
+            if full_name != self.original_repo:
+                self.log(
+                    f"Repository renamed from '{self.original_repo}' to '{full_name}'",
+                    logging.WARNING,
+                )
 
             # Fetch plugin domain and validate repository structure
             if not await self.fetch_github_releases(github):
