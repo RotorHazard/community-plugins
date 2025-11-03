@@ -137,10 +137,8 @@ class SummaryGenerator:
                 valid_repositories.append(metadata.get("repository"))
 
                 # Check if the repository has been renamed
-                original_repo = self.repos_list[
-                    valid_repositories.index(metadata.get("repository"))
-                ]
-                if metadata.get("repository").lower() != original_repo.lower():
+                # Compare with the original repository name
+                if metadata.get("repository") != generator.original_repo:
                     renamed_plugins += 1
 
         # Save generated metadata to local JSON files
