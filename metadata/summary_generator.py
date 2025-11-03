@@ -124,6 +124,11 @@ class SummaryGenerator:
                 # Flush plugin logs (grouped)
                 generator.logger.flush()
 
+                # Check if the repository has been renamed
+                # This works even if the plugin is skipped
+                if generator.repo != generator.original_repo:
+                    renamed_plugins += 1
+
                 if not result:
                     skipped_plugins += 1
                     continue
@@ -135,11 +140,6 @@ class SummaryGenerator:
 
                 plugin_data[repo_id] = metadata
                 valid_repositories.append(metadata.get("repository"))
-
-                # Check if the repository has been renamed
-                # Compare with the original repository name
-                if metadata.get("repository") != generator.original_repo:
-                    renamed_plugins += 1
 
         # Save generated metadata to local JSON files
         self.save_filtered_json(f"{self.output_dir}/diff/after.json", plugin_data)
