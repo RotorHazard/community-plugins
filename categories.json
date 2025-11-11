@@ -46,7 +46,8 @@
     "Christoph-Hofmann/oled_rotorhazard_display",
     "Dutch-Drone-Racing/RH-Plugin-EventAction-UDP-Message",
     "HazardCreative/RotorHazard-Idle-Race_Handler",
-    "i-am-grub/netpack-installer"
+    "i-am-grub/netpack-installer",
+    "RotorHazard/LapRF-Interface"
   ],
   "Other": [
     "Dutch-Drone-Racing/RH-Dropgate",
