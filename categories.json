@@ -1,6 +1,6 @@
 {
   "Event Management": [
-    "i-am-grub/MultiGP_Toolkit",
+    "i-am-grub/multigp_toolkit",
     "RotorHazard/Connector-FPVTrackSide",
     "FPVScores/FPVScores-Sync",
     "vikibaarathi/rh-velocidrone",
@@ -27,7 +27,7 @@
     "jrwrodgers/event_plots"
   ],
   "OSD & VRx Control": [
-    "i-am-grub/VRxC_ELRS",
+    "i-am-grub/vrxc_elrs",
     "RotorHazard/VRxC-ClearView2",
     "RotorHazard/VRxC-Fusion"
   ],
