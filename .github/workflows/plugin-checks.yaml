@@ -26,7 +26,7 @@ jobs:
       relevant: ${{ steps.filter.outputs.relevant }}
     steps:
       - name: ⤵️ Check out (merge commit)
-        uses: actions/checkout@v5.0.0
+        uses: actions/checkout@v5.0.1
         with:
           ref: refs/pull/${{ github.event.pull_request.number }}/merge
           fetch-depth: 2
@@ -51,7 +51,7 @@ jobs:
       # If relevant: do the full preflight
       - name: ⤵️ Check out code (PR merge commit)
         if: needs.changes.outputs.relevant == 'true'
-        uses: actions/checkout@v5.0.0
+        uses: actions/checkout@v5.0.1
         with:
           ref: refs/pull/${{ github.event.pull_request.number }}/merge
           fetch-depth: 2
@@ -90,7 +90,7 @@ jobs:
     if: ${{ needs.preflight.outputs.action != '' || needs.preflight.outputs.repository != '' }}
     steps:
       - name: ⤵️ Check out code
-        uses: actions/checkout@v5.0.0
+        uses: actions/checkout@v5.0.1
       - name: 🏗 Set up UV
         uses: astral-sh/setup-uv@v7.1.3
         with:
@@ -120,7 +120,7 @@ jobs:
     if: ${{ needs.preflight.outputs.action == 'add' }}
     steps:
       - name: ⤵️ Check out code
-        uses: actions/checkout@v5.0.0
+        uses: actions/checkout@v5.0.1
       - name: 🏗 Set up UV
         uses: astral-sh/setup-uv@v7.1.3
         with:
@@ -141,7 +141,7 @@ jobs:
     if: ${{ needs.preflight.outputs.action == 'add' }}
     steps:
       - name: ⤵️ Check out code
-        uses: actions/checkout@v5.0.0
+        uses: actions/checkout@v5.0.1
       - name: 🏗 Set up UV
         uses: astral-sh/setup-uv@v7.1.3
         with:
