@@ -1,10 +1,13 @@
 """Generate metadata for each RotorHazard community plugin."""
 
 import base64
+import hashlib
 import json
 import logging
 from datetime import UTC, datetime
+from typing import Any
 
+import aiohttp
 from aiogithubapi import (
     GitHubAPI,
     GitHubException,
@@ -344,14 +347,7 @@ class PluginMetadataGenerator:
 
             # Add releases metadata
             self.metadata = {
-                "releases": [
-                    {
-                        "tag_name": release.tag_name,
-                        "published_at": release.published_at,
-                        "prerelease": release.prerelease,
-                    }
-                    for release in self.releases[:5]
-                ],
+                "releases": await self._build_releases_metadata(github),
                 **self.metadata,
             }
 
@@ -377,3 +373,101 @@ class PluginMetadataGenerator:
 
         self.log("🎉 Metadata successfully generated.")
         return {self.repo_metadata.id: self.metadata}
+
+    async def _build_releases_metadata(self, github: GitHubAPI) -> list[dict[str, Any]]:
+        """Build metadata for the latest releases, including asset digests."""
+        releases_metadata: list[dict[str, Any]] = []
+        zip_filename = self.manifest_data.get("zip_filename")
+
+        for release in self.releases[:5]:
+            release_entry: dict[str, Any] = {
+                "tag_name": release.tag_name,
+                "published_at": release.published_at,
+                "prerelease": release.prerelease,
+            }
+
+            if zip_filename:
+                asset_info = await self._get_release_asset_info(
+                    github, release, zip_filename
+                )
+                if asset_info:
+                    release_entry["asset"] = asset_info
+
+            releases_metadata.append(release_entry)
+
+        return releases_metadata
+
+    async def _get_release_asset_info(
+        self, github: GitHubAPI, release: Any, asset_name: str
+    ) -> dict[str, Any] | None:
+        """Return comprehensive info for the release asset matching asset_name."""
+        asset = next(
+            (
+                asset
+                for asset in getattr(release, "assets", [])
+                if getattr(asset, "name", None) == asset_name
+            ),
+            None,
+        )
+        if not asset:
+            self.log(
+                f"ℹ️  Asset '{asset_name}' not found in release {release.tag_name}",  # noqa: RUF001
+                logging.WARNING,
+            )
+            return None
+
+        # Build asset info dictionary
+        asset_info: dict[str, Any] = {"name": asset_name}
+
+        # Add size if available
+        size = getattr(asset, "size", None)
+        if size is not None:
+            asset_info["size"] = size
+
+        # Add download count if available
+        download_count = getattr(asset, "download_count", None)
+        if download_count is not None:
+            asset_info["download_count"] = download_count
+
+        # GitHub API returns digest in format "sha256:HASH"
+        digest = getattr(asset, "digest", None)
+        if digest:
+            # Strip the "sha256:" prefix if present
+            asset_info["sha256"] = digest.removeprefix("sha256:")
+            return asset_info
+
+        # Fallback: download asset and calculate SHA256 if digest not available
+        # This is needed for older releases (before June 2025)
+        download_url = getattr(asset, "browser_download_url", None) or getattr(
+            asset, "url", None
+        )
+        if not download_url:
+            # Return asset info without SHA256 if no download URL
+            return asset_info
+
+        # Reuse aiogithubapi's internal session to avoid new connections
+        session = getattr(github, "_session", None)
+        created_session = False
+        if session is None:
+            session = aiohttp.ClientSession()
+            created_session = True
+
+        sha256 = hashlib.sha256()
+        try:
+            async with session.get(download_url) as response:
+                response.raise_for_status()
+                async for chunk in response.content.iter_chunked(1024 * 64):
+                    sha256.update(chunk)
+            asset_info["sha256"] = sha256.hexdigest()
+        except Exception:
+            self.log(
+                f"Failed to fetch digest for asset '{asset_name}' "
+                f"from release {release.tag_name}",
+                logging.WARNING,
+            )
+            # SHA256 will not be added to asset_info on download failure
+        finally:
+            if created_session:
+                await session.close()
+
+        return asset_info

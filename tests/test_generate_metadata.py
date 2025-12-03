@@ -11,11 +11,12 @@ from metadata.plugin_metadata_generator import PluginMetadataGenerator
 from metadata.summary_generator import SummaryGenerator
 from syrupy.assertion import SnapshotAssertion
 
+from tests.conftest import MockRelease, MockReleaseAsset
+
 from . import load_fixture
 from .conftest import MockGitHubResponse, MockRepo
 
 
-@pytest.mark.asyncio
 @pytest.mark.freeze_time("2025-03-09 15:00:00+01:00")
 async def test_rotorhazard_plugin_success(
     mock_github: AsyncMock, snapshot: SnapshotAssertion
@@ -36,7 +37,6 @@ async def test_rotorhazard_plugin_success(
     snapshot.assert_match(data)
 
 
-@pytest.mark.asyncio
 async def test_rotor_hazard_plugin_archived(
     mock_github: AsyncMock,
     monkeypatch: pytest.MonkeyPatch,
@@ -67,7 +67,6 @@ async def test_rotor_hazard_plugin_archived(
     assert data.get("archived") is True
 
 
-@pytest.mark.asyncio
 async def test_manifest_domain_mismatch(
     mock_github: AsyncMock, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -100,7 +99,6 @@ async def test_manifest_domain_mismatch(
     monkeypatch.setattr(mock_github.repos.contents, "get", original_get)
 
 
-@pytest.mark.asyncio
 async def test_manifest_version_mismatch(
     mock_github: AsyncMock,
     monkeypatch: pytest.MonkeyPatch,
@@ -133,7 +131,6 @@ async def test_manifest_version_mismatch(
     monkeypatch.setattr(mock_github.repos.contents, "get", original_get)
 
 
-@pytest.mark.asyncio
 async def test_metadata_generator(
     tmp_path: Path,
     plugins_file: Path,
@@ -174,3 +171,99 @@ async def test_metadata_generator(
 
     assert summary.get("execution_time_seconds") == round(1.23, 2)
     snapshot.assert_match(summary)
+
+
+async def test_asset_info_with_size_and_download_count(
+    mock_github: AsyncMock,
+) -> None:
+    """Test that asset info includes size and download_count."""
+    plugin = PluginMetadataGenerator("owner/repo")
+    metadata = await plugin.fetch_metadata(mock_github)
+
+    assert metadata is not None
+    _repo_id, data = next(iter(metadata.items()))
+
+    # Check the first release has asset info
+    first_release = data["releases"][0]
+    assert "asset" in first_release
+    asset = first_release["asset"]
+
+    # Verify all expected fields are present
+    assert "name" in asset
+    assert "sha256" in asset
+    assert "size" in asset
+    assert "download_count" in asset
+
+    # Verify the values match our test data
+    assert asset["name"] == "plugin.zip"
+    assert asset["size"] == 12345
+    assert asset["download_count"] == 42
+
+
+async def test_digest_prefix_stripping(
+    mock_github: AsyncMock,
+) -> None:
+    """Test that the 'sha256:' prefix is stripped from digest field."""
+    plugin = PluginMetadataGenerator("owner/repo")
+    metadata = await plugin.fetch_metadata(mock_github)
+
+    assert metadata is not None
+    _repo_id, data = next(iter(metadata.items()))
+
+    # Check the first release asset
+    first_release = data["releases"][0]
+    asset = first_release["asset"]
+
+    # The digest should not have the 'sha256:' prefix
+    assert "sha256" in asset
+    sha256_hash = asset["sha256"]
+    assert not sha256_hash.startswith("sha256:")
+    # Verify it's a valid hex string (64 chars for SHA256)
+    assert len(sha256_hash) == 64
+    assert all(c in "0123456789abcdef" for c in sha256_hash)
+
+
+async def test_asset_without_digest_fallback(
+    mock_github: AsyncMock,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Test fallback behavior when digest is not available (older releases)."""
+
+    async def list_releases_without_digest(repo_name: str) -> MockGitHubResponse:
+        """Return releases without digest field."""
+        release = MockRelease(
+            tag_name="v0.9.0",
+            prerelease=False,
+            created_at=datetime(2013, 1, 1, tzinfo=UTC),
+            published_at=datetime(2013, 1, 1, tzinfo=UTC),
+            assets=[
+                MockReleaseAsset(
+                    name="plugin.zip",
+                    browser_download_url="https://example.com/old/plugin.zip",
+                    digest=None,  # No digest available
+                    size=10000,
+                    download_count=100,
+                )
+            ],
+        )
+        return MockGitHubResponse(data=[release], etag="mock_etag")
+
+    monkeypatch.setattr(
+        mock_github.repos.releases,
+        "list",
+        AsyncMock(side_effect=list_releases_without_digest),
+    )
+
+    plugin = PluginMetadataGenerator("owner/repo")
+    await plugin.fetch_repository_info(mock_github)
+    await plugin.fetch_github_releases(mock_github)
+
+    # The asset should still have size and download_count
+    # but might not have sha256 (depends on whether fallback download succeeds)
+    first_release = plugin.releases[0]
+    assert first_release.tag_name == "v0.9.0"
+    assert len(first_release.assets) == 1
+    asset = first_release.assets[0]
+    assert asset.digest is None
+    assert asset.size == 10000
+    assert asset.download_count == 100
