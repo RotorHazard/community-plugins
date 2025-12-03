@@ -45,6 +45,18 @@ class MockRelease:
     prerelease: bool
     created_at: datetime
     published_at: datetime
+    assets: list[Any] = field(default_factory=list)
+
+
+@dataclass
+class MockReleaseAsset:
+    """Mock GitHub release asset."""
+
+    name: str
+    browser_download_url: str
+    digest: str | None = None
+    size: int | None = None
+    download_count: int | None = None
 
 
 def create_mock_repos(
@@ -90,12 +102,23 @@ def mock_repos_releases() -> MagicMock:
             published_at = datetime.strptime(
                 item["published_at"], "%Y-%m-%dT%H:%M:%SZ"
             ).replace(tzinfo=UTC)
+            assets = [
+                MockReleaseAsset(
+                    name=asset["name"],
+                    browser_download_url=asset["browser_download_url"],
+                    digest=asset.get("digest"),
+                    size=asset.get("size"),
+                    download_count=asset.get("download_count"),
+                )
+                for asset in item.get("assets", [])
+            ]
             releases_list.append(
                 MockRelease(
                     tag_name=item["tag_name"],
                     prerelease=item["prerelease"],
                     created_at=created_at,
                     published_at=published_at,
+                    assets=assets,
                 )
             )
         return MockGitHubResponse(data=releases_list, etag="mock_releases_etag")
@@ -166,6 +189,7 @@ def mock_github(
         def __init__(self, token: str | None = None) -> None:
             self.token = token
             self.repos = mock_repos_obj
+            self._session = None  # Mock internal session (not used in tests)
 
         async def __aenter__(self) -> MagicMock:
             return self
