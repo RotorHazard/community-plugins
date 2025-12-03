@@ -36,6 +36,16 @@
         'published_at': FakeDatetime(2013, 3, 1, 19, 35, 32, tzinfo=datetime.timezone.utc),
         'tag_name': 'v1.0.1',
       }),
+      dict({
+        'prerelease': False,
+        'published_at': FakeDatetime(2013, 2, 28, 19, 35, 32, tzinfo=datetime.timezone.utc),
+        'tag_name': 'v1.0.0',
+      }),
+      dict({
+        'prerelease': True,
+        'published_at': FakeDatetime(2013, 2, 27, 19, 35, 32, tzinfo=datetime.timezone.utc),
+        'tag_name': 'v1.0.0-beta',
+      }),
     ]),
     'repository': 'owner/repo',
     'stargazers_count': 100,

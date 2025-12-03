@@ -346,10 +346,11 @@ class PluginMetadataGenerator:
             self.metadata = {
                 "releases": [
                     {
-                        "tag_name": self.releases[0].tag_name,
-                        "published_at": self.releases[0].published_at,
-                        "prerelease": self.releases[0].prerelease,
+                        "tag_name": release.tag_name,
+                        "published_at": release.published_at,
+                        "prerelease": release.prerelease,
                     }
+                    for release in self.releases[:5]
                 ],
                 **self.metadata,
             }
