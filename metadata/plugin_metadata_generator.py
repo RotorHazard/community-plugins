@@ -1,40 +1,24 @@
 """Generate metadata for each RotorHazard community plugin."""
 
 import base64
-import hashlib
 import json
 import logging
 from datetime import UTC, datetime
 from typing import Any
 
-import aiohttp
 from aiogithubapi import (
     GitHubAPI,
     GitHubException,
     GitHubNotFoundException,
     GitHubRatelimitException,
 )
-from const import EXCLUDED_KEYS, LOGGER
-
-
-class PluginLogBuffer:
-    """Buffer logs per plugin before printing them grouped."""
-
-    def __init__(self, repo: str) -> None:
-        """Initialize the log buffer for a specific plugin repository."""
-        self.repo = repo
-        self.buffer: list[tuple[int, str]] = []
-
-    def log(self, level: int, message: str) -> None:
-        """Buffer a log message with its level."""
-        self.buffer.append((level, message))
-
-    def flush(self) -> None:
-        """Flush the buffered logs to the logger."""
-        LOGGER.info(f"::group::🔧 {self.repo}")
-        for level, message in self.buffer:
-            LOGGER.log(level, f"<{self.repo}> {message}")
-        LOGGER.info("::endgroup::")
+from const import EXCLUDED_KEYS
+from generator import (
+    PluginLogBuffer,
+    get_release_asset_info,
+    validate_manifest_domain,
+    validate_manifest_version,
+)
 
 
 class PluginMetadataGenerator:
@@ -226,59 +210,6 @@ class PluginMetadataGenerator:
         self.log(f"ℹ️  Plugin domain folder: `{self.domain}` (branch: {self.used_ref})")  # noqa: RUF001
         return True
 
-    async def validate_manifest_domain(self) -> bool:
-        """Validate that the domain in `manifest.json` matches the folder name.
-
-        Returns
-        -------
-            bool: True if the domain matches the folder name, False otherwise.
-
-        """
-        # Check if the domain in manifest.json matches the folder name
-        manifest_domain: str = self.manifest_data.get("domain")
-        if manifest_domain != self.domain:
-            self.log(
-                f"Domain mismatch: Folder '{self.domain}' "
-                f"vs Manifest '{manifest_domain}'",
-                logging.ERROR,
-            )
-            return False
-        # Manifest domain matches the folder name
-        self.log(
-            f"✅ Manifest domain validated: '{manifest_domain}' matches domain folder"
-        )
-        return True
-
-    async def validate_manifest_version(self) -> bool:
-        """Validate if version in manifest.json matches the latest stable or prerelease.
-
-        Returns
-        -------
-            bool: `True` if the version is valid, `False` if there is a mismatch.
-
-        """
-
-        def normalize_version(version: str | None) -> str | None:
-            return version.lstrip("v") if version else None
-
-        manifest_version = self.manifest_data.get("version")
-        latest_version = normalize_version(self.used_ref)
-
-        if manifest_version == latest_version:
-            self.log(
-                f"✅ Manifest version validated: '{manifest_version}' "
-                f"matches release '{latest_version}'"
-            )
-            return True
-
-        # Mismatch - version is outdated
-        self.log(
-            f"Manifest version mismatch: '{manifest_version}' "
-            f"(manifest) vs '{latest_version}' (release)",
-            logging.WARNING,
-        )
-        return False
-
     async def fetch_metadata(self, github: GitHubAPI) -> dict | None:  # noqa: PLR0911
         """Fetch and update the plugin's metadata.
 
@@ -324,10 +255,14 @@ class PluginMetadataGenerator:
             if not await self.fetch_manifest_file(github):
                 return None
             # Validate domain and manifest version
-            if not await self.validate_manifest_domain():
+            if not validate_manifest_domain(
+                self.domain, self.manifest_data, self.logger
+            ):
                 return None
             # Validate manifest version against github releases
-            if not await self.validate_manifest_version():
+            if not validate_manifest_version(
+                self.manifest_data, self.used_ref, self.logger
+            ):
                 return None
 
             self.metadata = {
@@ -387,8 +322,8 @@ class PluginMetadataGenerator:
             }
 
             if zip_filename:
-                asset_info = await self._get_release_asset_info(
-                    github, release, zip_filename
+                asset_info = await get_release_asset_info(
+                    github, release, zip_filename, self.logger
                 )
                 if asset_info:
                     release_entry["asset"] = asset_info
@@ -396,78 +331,3 @@ class PluginMetadataGenerator:
             releases_metadata.append(release_entry)
 
         return releases_metadata
-
-    async def _get_release_asset_info(
-        self, github: GitHubAPI, release: Any, asset_name: str
-    ) -> dict[str, Any] | None:
-        """Return comprehensive info for the release asset matching asset_name."""
-        asset = next(
-            (
-                asset
-                for asset in getattr(release, "assets", [])
-                if getattr(asset, "name", None) == asset_name
-            ),
-            None,
-        )
-        if not asset:
-            self.log(
-                f"ℹ️  Asset '{asset_name}' not found in release {release.tag_name}",  # noqa: RUF001
-                logging.WARNING,
-            )
-            return None
-
-        # Build asset info dictionary
-        asset_info: dict[str, Any] = {"name": asset_name}
-
-        # Add size if available
-        size = getattr(asset, "size", None)
-        if size is not None:
-            asset_info["size"] = size
-
-        # Add download count if available
-        download_count = getattr(asset, "download_count", None)
-        if download_count is not None:
-            asset_info["download_count"] = download_count
-
-        # GitHub API returns digest in format "sha256:HASH"
-        digest = getattr(asset, "digest", None)
-        if digest:
-            # Strip the "sha256:" prefix if present
-            asset_info["sha256"] = digest.removeprefix("sha256:")
-            return asset_info
-
-        # Fallback: download asset and calculate SHA256 if digest not available
-        # This is needed for older releases (before June 2025)
-        download_url = getattr(asset, "browser_download_url", None) or getattr(
-            asset, "url", None
-        )
-        if not download_url:
-            # Return asset info without SHA256 if no download URL
-            return asset_info
-
-        # Reuse aiogithubapi's internal session to avoid new connections
-        session = getattr(github, "_session", None)
-        created_session = False
-        if session is None:
-            session = aiohttp.ClientSession()
-            created_session = True
-
-        sha256 = hashlib.sha256()
-        try:
-            async with session.get(download_url) as response:
-                response.raise_for_status()
-                async for chunk in response.content.iter_chunked(1024 * 64):
-                    sha256.update(chunk)
-            asset_info["sha256"] = sha256.hexdigest()
-        except Exception:
-            self.log(
-                f"Failed to fetch digest for asset '{asset_name}' "
-                f"from release {release.tag_name}",
-                logging.WARNING,
-            )
-            # SHA256 will not be added to asset_info on download failure
-        finally:
-            if created_session:
-                await session.close()
-
-        return asset_info
