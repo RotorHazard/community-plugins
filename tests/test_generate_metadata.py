@@ -7,7 +7,11 @@ from pathlib import Path
 from unittest.mock import AsyncMock
 
 import pytest
-from metadata.plugin_metadata_generator import PluginMetadataGenerator
+from metadata import (
+    PluginMetadataGenerator,
+    validate_manifest_domain,
+    validate_manifest_version,
+)
 from metadata.summary_generator import SummaryGenerator
 from syrupy.assertion import SnapshotAssertion
 
@@ -94,7 +98,9 @@ async def test_manifest_domain_mismatch(
     await plugin.validate_plugin_repository(mock_github)
     manifest_fetched = await plugin.fetch_manifest_file(mock_github)
     assert manifest_fetched is True
-    valid_domain = await plugin.validate_manifest_domain()
+    valid_domain = validate_manifest_domain(
+        plugin.domain, plugin.manifest_data, plugin.logger
+    )
     assert valid_domain is False
     monkeypatch.setattr(mock_github.repos.contents, "get", original_get)
 
@@ -126,7 +132,9 @@ async def test_manifest_version_mismatch(
     await plugin.fetch_github_releases(mock_github)
     await plugin.validate_plugin_repository(mock_github)
     await plugin.fetch_manifest_file(mock_github)
-    valid_version = await plugin.validate_manifest_version()
+    valid_version = validate_manifest_version(
+        plugin.manifest_data, plugin.used_ref, plugin.logger
+    )
     assert valid_version is False
     monkeypatch.setattr(mock_github.repos.contents, "get", original_get)
 
@@ -267,3 +275,64 @@ async def test_asset_without_digest_fallback(
     assert asset.digest is None
     assert asset.size == 10000
     assert asset.download_count == 100
+
+
+async def test_renamed_repository(
+    mock_github: AsyncMock,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Test handling of renamed repositories."""
+    _original_get = mock_github.repos.get
+
+    async def renamed_get(repo_name: str) -> MockGitHubResponse:
+        # Return a different full_name to simulate rename
+        repo = MockRepo(
+            full_name="owner/new_repo_name",  # Different from original
+            archived=False,
+            updated_at=datetime.now(UTC).isoformat(),
+            open_issues_count=5,
+            stargazers_count=100,
+            topics=["python", "plugin"],
+            id=1,
+        )
+        return MockGitHubResponse(data=repo, etag="mock_repo_etag")
+
+    monkeypatch.setattr(mock_github.repos, "get", renamed_get)
+
+    plugin = PluginMetadataGenerator("owner/old_repo_name")
+    await plugin.fetch_repository_info(mock_github)
+
+    # Verify the repo name was updated
+    assert plugin.original_repo == "owner/old_repo_name"
+    assert plugin.repo != plugin.original_repo
+    assert plugin.repo == "owner/new_repo_name"
+
+
+async def test_summary_generator_missing_plugin_file(
+    tmp_path: Path,
+    mock_github: AsyncMock,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Test SummaryGenerator when plugin list file doesn't exist."""
+    output_dir = tmp_path / "output"
+    output_dir.mkdir()
+    (output_dir / "diff").mkdir(parents=True, exist_ok=True)
+
+    # Use a non-existent plugin file
+    non_existent_file = tmp_path / "non_existent.json"
+
+    monkeypatch.setattr("aiogithubapi.GitHubAPI", AsyncMock(return_value=mock_github))
+    fake_perf_calls = iter([100.0, 100.5])
+    monkeypatch.setattr(
+        "metadata.summary_generator.perf_counter", lambda: next(fake_perf_calls)
+    )
+
+    summary = SummaryGenerator(str(non_existent_file), str(output_dir))
+    await summary.generate("test_token")
+
+    # Should still generate files with empty data
+    data_file = output_dir / "data.json"
+    assert data_file.exists()
+    data = json.loads(data_file.read_text())
+    assert isinstance(data, dict)
+    assert len(data) == 0  # Empty since no plugins were loaded
