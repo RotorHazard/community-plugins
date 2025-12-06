@@ -347,7 +347,7 @@ class PluginMetadataGenerator:
             ):
                 self.log(
                     "Zip asset detected in latest release but manifest has no "
-                    "`zip_filename`; consider adding it to manifest.json.",
+                    "`zip_filename` specified.",
                     logging.WARNING,
                 )
                 zip_warning_emitted = True
