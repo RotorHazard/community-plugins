@@ -616,14 +616,18 @@ async def test_build_releases_metadata_missing_zip(
 ) -> None:
     """Logs warning when zip_filename is missing in assets."""
     plugin = PluginMetadataGenerator("owner/repo")
-    plugin.manifest_data = {"zip_filename": "missing.zip"}
+    plugin.manifest_data = {"name": "X"}  # No zip_filename
 
     class Release:
         def __init__(self) -> None:
             self.tag_name = "v1"
             self.published_at = datetime.now(UTC)
             self.prerelease = False
-            self.assets = [type("Asset", (), {"name": None})()]
+            self.assets = [
+                type(
+                    "Asset", (), {"name": "plugin.zip", "size": 1, "download_count": 2}
+                )()
+            ]
 
     plugin.releases = [Release()]
     monkeypatch.setattr(
@@ -633,3 +637,39 @@ async def test_build_releases_metadata_missing_zip(
 
     releases = await plugin._build_releases_metadata(AsyncMock())
     assert releases[0]["tag_name"] == "v1"
+    assert any("zip_filename" in message for _level, message in plugin.logger.buffer)
+
+
+async def test_missing_asset_warning_only_on_used_ref(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Warn only for used_ref when zip_filename is set."""
+    plugin = PluginMetadataGenerator("owner/repo")
+    plugin.manifest_data = {"name": "X", "zip_filename": "bundle.zip"}
+
+    class ReleaseWithAsset:
+        def __init__(self) -> None:
+            self.tag_name = "v2"
+            self.published_at = datetime.now(UTC)
+            self.prerelease = False
+            self.assets = [type("Asset", (), {"name": "bundle.zip"})()]
+
+    class ReleaseWithoutAsset:
+        def __init__(self) -> None:
+            self.tag_name = "v1"
+            self.published_at = datetime.now(UTC)
+            self.prerelease = False
+            self.assets = [type("Asset", (), {"name": "other.zip"})()]
+
+    plugin.releases = [ReleaseWithAsset(), ReleaseWithoutAsset()]
+
+    monkeypatch.setattr(
+        "metadata.plugin_metadata_generator.get_release_asset_info",
+        AsyncMock(return_value={"name": "bundle.zip"}),
+    )
+
+    releases = await plugin._build_releases_metadata(AsyncMock())
+
+    assert len(releases) == 2
+    # No warnings because used_ref (v2) had the asset, v1 missing does not warn
+    assert not plugin.logger.buffer
