@@ -12,6 +12,13 @@
         "digest": "sha256:9a27e03cc6248fb656d2bb120bc8f0f75b9c6573c2bd8fa8700c55dc6f0d7a4a",
         "size": 12345,
         "download_count": 42
+      },
+      {
+        "name": "plugin-debug.zip",
+        "browser_download_url": "https://example.com/releases/v1.0.1/plugin-debug.zip",
+        "digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "size": 15000,
+        "download_count": 5
       }
     ]
   },

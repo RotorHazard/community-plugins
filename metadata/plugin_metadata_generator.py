@@ -321,12 +321,30 @@ class PluginMetadataGenerator:
                 "prerelease": release.prerelease,
             }
 
-            if zip_filename:
+            assets: list[dict[str, Any]] = []
+            seen_assets: set[str] = set()
+
+            for asset in getattr(release, "assets", []):
+                asset_name = getattr(asset, "name", None)
+                if not asset_name or asset_name in seen_assets:
+                    continue
+
+                seen_assets.add(asset_name)
                 asset_info = await get_release_asset_info(
-                    github, release, zip_filename, self.logger
+                    github, release, asset_name, self.logger
                 )
                 if asset_info:
-                    release_entry["asset"] = asset_info
+                    assets.append(asset_info)
+
+            if assets:
+                release_entry["assets"] = assets
+
+            if zip_filename and zip_filename not in seen_assets:
+                self.log(
+                    f"ℹ️  Asset '{zip_filename}' not found in ",  # noqa: RUF001
+                    "release {release.tag_name}",
+                    logging.WARNING,
+                )
 
             releases_metadata.append(release_entry)
 
