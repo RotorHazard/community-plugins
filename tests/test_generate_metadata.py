@@ -193,8 +193,10 @@ async def test_asset_info_with_size_and_download_count(
 
     # Check the first release has asset info
     first_release = data["releases"][0]
-    assert "asset" in first_release
-    asset = first_release["asset"]
+    assert "assets" in first_release
+    assets = first_release["assets"]
+    assert len(assets) == 2
+    asset = assets[0]
 
     # Verify all expected fields are present
     assert "name" in asset
@@ -206,6 +208,10 @@ async def test_asset_info_with_size_and_download_count(
     assert asset["name"] == "plugin.zip"
     assert asset["size"] == 12345
     assert asset["download_count"] == 42
+    # Verify additional assets are preserved
+    second_asset = assets[1]
+    assert second_asset["name"] == "plugin-debug.zip"
+    assert second_asset["size"] == 15000
 
 
 async def test_digest_prefix_stripping(
@@ -220,15 +226,16 @@ async def test_digest_prefix_stripping(
 
     # Check the first release asset
     first_release = data["releases"][0]
-    asset = first_release["asset"]
+    assets = first_release["assets"]
 
     # The digest should not have the 'sha256:' prefix
-    assert "sha256" in asset
-    sha256_hash = asset["sha256"]
-    assert not sha256_hash.startswith("sha256:")
-    # Verify it's a valid hex string (64 chars for SHA256)
-    assert len(sha256_hash) == 64
-    assert all(c in "0123456789abcdef" for c in sha256_hash)
+    for asset in assets:
+        assert "sha256" in asset
+        sha256_hash = asset["sha256"]
+        assert not sha256_hash.startswith("sha256:")
+        # Verify it's a valid hex string (64 chars for SHA256)
+        assert len(sha256_hash) == 64
+        assert all(c in "0123456789abcdef" for c in sha256_hash)
 
 
 async def test_asset_without_digest_fallback(
