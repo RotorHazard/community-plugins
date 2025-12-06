@@ -135,6 +135,33 @@ async def test_asset_digest_from_data_payload(mock_github: AsyncMock) -> None:
     assert result["download_count"] == 22
 
 
+async def test_asset_digest_from_raw_data_fields(mock_github: AsyncMock) -> None:
+    """Digest should be found in raw_data fallback fields."""
+    logger = PluginLogBuffer(Mock())
+
+    class RawAsset:
+        def __init__(self) -> None:
+            self.name = "plugin.zip"
+            self.browser_download_url = "https://example.com/plugin.zip"
+            self.size = 333
+            self.download_count = 44
+            self._raw_data = {"digest": "sha256:def456"}
+
+    release = MockRelease(
+        tag_name="v1.0.0",
+        prerelease=False,
+        created_at=datetime(2025, 1, 1, tzinfo=UTC),
+        published_at=datetime(2025, 1, 1, tzinfo=UTC),
+        assets=[RawAsset()],
+    )
+
+    result = await get_release_asset_info(mock_github, release, "plugin.zip", logger)
+    assert result is not None
+    assert result["sha256"] == "def456"
+    assert result["size"] == 333
+    assert result["download_count"] == 44
+
+
 async def test_asset_data_without_digest(mock_github: AsyncMock) -> None:
     """When data payload has no digest, sha256 should be omitted."""
     logger = PluginLogBuffer(Mock())

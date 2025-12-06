@@ -60,10 +60,12 @@ async def get_release_asset_info(
     # GitHub API returns digest in format "sha256:HASH"
     digest = getattr(asset, "digest", None)
     if digest is None:
-        # Some models expose the raw payload on `.data`
-        payload: Any = getattr(asset, "data", None)
-        if isinstance(payload, dict):
-            digest = payload.get("digest")
+        for attr in ("data", "_raw_data"):
+            payload: Any = getattr(asset, attr, None)
+            if isinstance(payload, dict):
+                digest = payload.get("digest")
+                if digest:
+                    break
     if digest:
         # Strip the "sha256:" prefix if present
         asset_info["sha256"] = digest.removeprefix("sha256:")
