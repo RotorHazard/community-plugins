@@ -33,11 +33,11 @@ To add your plugin to the community plugins database, follow the steps below.
     python scripts/sort_json.py plugins.json
     ```
 
-??? tip "use pre-commit to ensure quality commits"
-    [Pre-commit](https://pre-commit.com/) ensures that quality commits are pushed and you also know immediately if problems arise that can be solved in advance. To install pre-commit, run the following command inside your virtual environment (.venv):
+??? tip "use prek to ensure quality commits"
+    [Prek](https://prek.j178.dev/) ensures that quality commits are pushed and you also know immediately if problems arise that can be solved in advance. To install prek, run the following command inside your virtual environment (.venv):
 
     ```bash
-    pre-commit install
+    prek install
     ```
 
 ## CI Checks
