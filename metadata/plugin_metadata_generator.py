@@ -313,6 +313,7 @@ class PluginMetadataGenerator:
         """Build metadata for the latest releases, including asset digests."""
         releases_metadata: list[dict[str, Any]] = []
         zip_filename = self.manifest_data.get("zip_filename")
+        zip_warning_emitted = False
 
         for release in self.releases[:5]:
             release_entry: dict[str, Any] = {
@@ -336,10 +337,29 @@ class PluginMetadataGenerator:
                 if asset_info:
                     assets.append(asset_info)
 
+            if (
+                not zip_filename
+                and not zip_warning_emitted
+                and any(
+                    getattr(asset, "name", "").endswith(".zip")
+                    for asset in getattr(release, "assets", [])
+                )
+            ):
+                self.log(
+                    "Zip asset detected in latest release but manifest has no "
+                    "`zip_filename`; consider adding it to manifest.json.",
+                    logging.WARNING,
+                )
+                zip_warning_emitted = True
+
             if assets:
                 release_entry["assets"] = assets
 
-            if zip_filename and zip_filename not in seen_assets:
+            if (
+                zip_filename
+                and zip_filename not in seen_assets
+                and release.tag_name == self.used_ref
+            ):
                 self.log(
                     f"Asset '{zip_filename}' not found in release {release.tag_name}",
                     logging.WARNING,
