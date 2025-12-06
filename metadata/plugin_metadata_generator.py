@@ -341,8 +341,7 @@ class PluginMetadataGenerator:
 
             if zip_filename and zip_filename not in seen_assets:
                 self.log(
-                    f"ℹ️  Asset '{zip_filename}' not found in ",  # noqa: RUF001
-                    "release {release.tag_name}",
+                    f"Asset '{zip_filename}' not found in release {release.tag_name}",
                     logging.WARNING,
                 )
 

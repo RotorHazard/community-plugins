@@ -7,6 +7,7 @@ from pathlib import Path
 from unittest.mock import AsyncMock
 
 import pytest
+from aiogithubapi import GitHubNotFoundException
 from metadata import (
     PluginMetadataGenerator,
     validate_manifest_domain,
@@ -343,3 +344,292 @@ async def test_summary_generator_missing_plugin_file(
     data = json.loads(data_file.read_text())
     assert isinstance(data, dict)
     assert len(data) == 0  # Empty since no plugins were loaded
+
+
+async def test_fetch_github_releases_no_releases(
+    mock_github: AsyncMock, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Return False when no releases are found."""
+    monkeypatch.setattr(
+        mock_github.repos.releases,
+        "list",
+        AsyncMock(return_value=MockGitHubResponse(data=[], etag=None)),
+    )
+    plugin = PluginMetadataGenerator("owner/repo")
+    result = await plugin.fetch_github_releases(mock_github)
+    assert result is False
+
+
+async def test_validate_plugin_repository_missing_custom_folder(
+    mock_github: AsyncMock, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Missing custom_plugins folder should return False."""
+    plugin = PluginMetadataGenerator("owner/repo")
+    await plugin.fetch_repository_info(mock_github)
+
+    async def no_custom_folder(_repo: str, _path: str = "") -> MockGitHubResponse:
+        return MockGitHubResponse(data=[])
+
+    monkeypatch.setattr(mock_github.repos.contents, "get", no_custom_folder)
+    result = await plugin.validate_plugin_repository(mock_github)
+    assert result is False
+
+
+async def test_validate_plugin_repository_not_found(
+    mock_github: AsyncMock, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """GitHubNotFoundException should return False."""
+    plugin = PluginMetadataGenerator("owner/repo")
+    await plugin.fetch_repository_info(mock_github)
+
+    async def raise_not_found(_repo: str, _path: str = "") -> MockGitHubResponse:
+        raise GitHubNotFoundException
+
+    monkeypatch.setattr(mock_github.repos.contents, "get", raise_not_found)
+    result = await plugin.validate_plugin_repository(mock_github)
+    assert result is False
+
+
+async def test_fetch_metadata_with_renamed_repo(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Renamed repository path should still build metadata."""
+    plugin = PluginMetadataGenerator("owner/original")
+
+    async def fake_fetch_repository_info(_github: AsyncMock) -> bool:
+        plugin.repo_metadata = MockRepo(
+            full_name="owner/renamed",
+            archived=False,
+            default_branch="main",
+            updated_at=datetime.now(UTC).isoformat(),
+            open_issues_count=1,
+            stargazers_count=2,
+            watchers_count=3,
+            forks_count=4,
+            topics=["x"],
+            id=99,
+        )
+        plugin.repo = plugin.repo_metadata.full_name
+        return True
+
+    monkeypatch.setattr(plugin, "fetch_repository_info", fake_fetch_repository_info)
+    monkeypatch.setattr(plugin, "fetch_github_releases", AsyncMock(return_value=True))
+    monkeypatch.setattr(
+        plugin, "validate_plugin_repository", AsyncMock(return_value=True)
+    )
+    monkeypatch.setattr(plugin, "fetch_manifest_file", AsyncMock(return_value=True))
+    monkeypatch.setattr(
+        plugin,
+        "_build_releases_metadata",
+        AsyncMock(return_value=[]),
+    )
+    plugin.manifest_data = {"name": "X", "domain": "d", "version": "1.0.0"}
+    monkeypatch.setattr(
+        "metadata.plugin_metadata_generator.validate_manifest_domain",
+        lambda *_args, **_kwargs: True,
+    )
+    monkeypatch.setattr(
+        "metadata.plugin_metadata_generator.validate_manifest_version",
+        lambda *_args, **_kwargs: True,
+    )
+
+    metadata = await plugin.fetch_metadata(AsyncMock())
+    assert metadata is not None
+    repo_id, data = next(iter(metadata.items()))
+    assert repo_id == 99
+    assert data["repository"] == "owner/renamed"
+    assert data["manifest"]["name"] == "X"
+
+
+async def test_summary_generator_counts(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Ensure summary counts renamed/archived/skipped/valid plugins."""
+    plugin_file = tmp_path / "plugins.json"
+    plugin_file.write_text(json.dumps(["skip", "archived", "ok"]))
+    output_dir = tmp_path / "output"
+    (output_dir / "diff").mkdir(parents=True, exist_ok=True)
+
+    class FakeLogger:
+        def flush(self) -> None:
+            pass
+
+    class FakeGenerator:
+        def __init__(self, repo: str) -> None:
+            self.original_repo = repo
+            self.repo = repo
+            self.logger = FakeLogger()
+
+        async def fetch_metadata(self, _github: AsyncMock) -> dict | None:
+            if self.original_repo == "skip":
+                return None
+            if self.original_repo == "archived":
+                self.repo = "archived-renamed"
+                return {1: {"archived": True}}
+            self.repo = "ok-renamed"
+            return {2: {"repository": "ok"}}
+
+    class FakeGitHub:
+        async def __aenter__(self) -> "FakeGitHub":
+            return self
+
+        async def __aexit__(self, *_args: object) -> None:
+            pass
+
+    monkeypatch.setattr(
+        "metadata.summary_generator.PluginMetadataGenerator", FakeGenerator
+    )
+    monkeypatch.setattr(
+        "aiogithubapi.GitHubAPI",
+        lambda *_args, **_kwargs: FakeGitHub(),
+    )
+    fake_perf = iter([0.0, 1.0])
+    monkeypatch.setattr(
+        "metadata.summary_generator.perf_counter", lambda: next(fake_perf)
+    )
+
+    summary = SummaryGenerator(str(plugin_file), str(output_dir))
+    await summary.generate("token")
+
+    summary_data = json.loads((output_dir / "summary.json").read_text())
+    assert summary_data["total_plugins"] == 3
+    assert summary_data["skipped_plugins"] == 1
+    assert summary_data["archived_plugins"] == 1
+    assert summary_data["valid_plugins"] == 1
+    assert summary_data["renamed_plugins"] == 2
+
+
+async def test_fetch_metadata_early_exit_on_releases(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """fetch_metadata returns None if releases cannot be fetched."""
+    plugin = PluginMetadataGenerator("owner/repo")
+
+    async def fake_fetch_repository_info(_github: AsyncMock) -> bool:
+        plugin.repo_metadata = MockRepo(full_name="owner/repo")
+        return True
+
+    monkeypatch.setattr(plugin, "fetch_repository_info", fake_fetch_repository_info)
+    monkeypatch.setattr(plugin, "fetch_github_releases", AsyncMock(return_value=False))
+
+    result = await plugin.fetch_metadata(AsyncMock())
+    assert result is None
+
+
+async def test_fetch_metadata_early_exit_on_validate_repo(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """fetch_metadata returns None if repository validation fails."""
+    plugin = PluginMetadataGenerator("owner/repo")
+
+    async def fake_fetch_repository_info(_github: AsyncMock) -> bool:
+        plugin.repo_metadata = MockRepo(full_name="owner/repo")
+        return True
+
+    monkeypatch.setattr(plugin, "fetch_repository_info", fake_fetch_repository_info)
+    monkeypatch.setattr(plugin, "fetch_github_releases", AsyncMock(return_value=True))
+    monkeypatch.setattr(
+        plugin, "validate_plugin_repository", AsyncMock(return_value=False)
+    )
+
+    result = await plugin.fetch_metadata(AsyncMock())
+    assert result is None
+
+
+async def test_fetch_metadata_early_exit_on_manifest(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """fetch_metadata returns None if manifest fetch fails."""
+    plugin = PluginMetadataGenerator("owner/repo")
+
+    async def fake_fetch_repository_info(_github: AsyncMock) -> bool:
+        plugin.repo_metadata = MockRepo(full_name="owner/repo")
+        return True
+
+    monkeypatch.setattr(plugin, "fetch_repository_info", fake_fetch_repository_info)
+    monkeypatch.setattr(plugin, "fetch_github_releases", AsyncMock(return_value=True))
+    monkeypatch.setattr(
+        plugin, "validate_plugin_repository", AsyncMock(return_value=True)
+    )
+    monkeypatch.setattr(plugin, "fetch_manifest_file", AsyncMock(return_value=False))
+
+    result = await plugin.fetch_metadata(AsyncMock())
+    assert result is None
+
+
+async def test_fetch_metadata_early_exit_on_domain_validation(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """fetch_metadata returns None if domain validation fails."""
+    plugin = PluginMetadataGenerator("owner/repo")
+
+    async def fake_fetch_repository_info(_github: AsyncMock) -> bool:
+        plugin.repo_metadata = MockRepo(full_name="owner/repo")
+        return True
+
+    monkeypatch.setattr(plugin, "fetch_repository_info", fake_fetch_repository_info)
+    monkeypatch.setattr(plugin, "fetch_github_releases", AsyncMock(return_value=True))
+    monkeypatch.setattr(
+        plugin, "validate_plugin_repository", AsyncMock(return_value=True)
+    )
+    monkeypatch.setattr(plugin, "fetch_manifest_file", AsyncMock(return_value=True))
+    monkeypatch.setattr(
+        "metadata.plugin_metadata_generator.validate_manifest_domain",
+        lambda *_args, **_kwargs: False,
+    )
+
+    result = await plugin.fetch_metadata(AsyncMock())
+    assert result is None
+
+
+async def test_fetch_metadata_early_exit_on_version_validation(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """fetch_metadata returns None if manifest version validation fails."""
+    plugin = PluginMetadataGenerator("owner/repo")
+
+    async def fake_fetch_repository_info(_github: AsyncMock) -> bool:
+        plugin.repo_metadata = MockRepo(full_name="owner/repo")
+        return True
+
+    monkeypatch.setattr(plugin, "fetch_repository_info", fake_fetch_repository_info)
+    monkeypatch.setattr(plugin, "fetch_github_releases", AsyncMock(return_value=True))
+    monkeypatch.setattr(
+        plugin, "validate_plugin_repository", AsyncMock(return_value=True)
+    )
+    monkeypatch.setattr(plugin, "fetch_manifest_file", AsyncMock(return_value=True))
+    monkeypatch.setattr(
+        "metadata.plugin_metadata_generator.validate_manifest_domain",
+        lambda *_args, **_kwargs: True,
+    )
+    monkeypatch.setattr(
+        "metadata.plugin_metadata_generator.validate_manifest_version",
+        lambda *_args, **_kwargs: False,
+    )
+
+    result = await plugin.fetch_metadata(AsyncMock())
+    assert result is None
+
+
+async def test_build_releases_metadata_missing_zip(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Logs warning when zip_filename is missing in assets."""
+    plugin = PluginMetadataGenerator("owner/repo")
+    plugin.manifest_data = {"zip_filename": "missing.zip"}
+
+    class Release:
+        def __init__(self) -> None:
+            self.tag_name = "v1"
+            self.published_at = datetime.now(UTC)
+            self.prerelease = False
+            self.assets = [type("Asset", (), {"name": None})()]
+
+    plugin.releases = [Release()]
+    monkeypatch.setattr(
+        "metadata.plugin_metadata_generator.get_release_asset_info",
+        AsyncMock(return_value=None),
+    )
+
+    releases = await plugin._build_releases_metadata(AsyncMock())
+    assert releases[0]["tag_name"] == "v1"
