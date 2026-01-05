@@ -53,10 +53,16 @@ class PluginMetadataGenerator:
 
     @property
     def used_ref(self) -> str:
-        """Return the branch/tag name used for fetching metadata."""
-        if self.releases:
-            return self.releases[0].tag_name
-        return self.repo_metadata.default_branch
+        """Return the branch/tag name used for fetching metadata.
+
+        Prefer the latest stable release; only fall back to a prerelease if no
+        stable release exists.
+        """
+        return (
+            self.latest_stable
+            or self.latest_prerelease
+            or self.repo_metadata.default_branch
+        )
 
     async def fetch_repository_info(self, github: GitHubAPI) -> bool:
         """Fetch and store repository metadata from GitHub.
