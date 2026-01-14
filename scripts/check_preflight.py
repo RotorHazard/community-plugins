@@ -1,10 +1,16 @@
 """Determine repository changes between plugins.json files."""
 
+import asyncio
 import json
 import logging
 import os
 import sys
 from pathlib import Path
+
+from aiogithubapi import GitHubAPI, GitHubException
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Logging setup (GitHub Actions compatible)
 logging.addLevelName(logging.INFO, "")
@@ -42,6 +48,38 @@ def load_repo_list(path: Path) -> set[str]:
         sys.exit(1)
 
 
+async def get_canonical_repo_name(repository: str, token: str) -> str:
+    """Get the canonical repository name from GitHub API.
+
+    GitHub URLs are case-insensitive, but we need the exact casing
+    for proper categorization on the website.
+
+    Args:
+    ----
+        repository (str): Repository name in format 'owner/repo'.
+        token (str): GitHub token for API access.
+
+    Returns:
+    -------
+        str: The canonical repository name with correct casing.
+
+    """
+    async with GitHubAPI(token) as github:
+        try:
+            response = await github.repos.get(repository)
+            canonical_name = response.data.full_name
+            if canonical_name.lower() != repository.lower():
+                LOGGER.warning(
+                    f"Repository name mismatch! Requested: '{repository}', "
+                    f"Canonical: '{canonical_name}'"
+                )
+        except GitHubException:
+            LOGGER.exception(f"Failed to fetch repository info for '{repository}'.")
+            sys.exit(1)
+        else:
+            return canonical_name
+
+
 def write_github_output(repository: str, action: str) -> None:
     """Write outputs to GITHUB_OUTPUT for use in workflow."""
     github_output = os.environ.get("GITHUB_OUTPUT")
@@ -51,7 +89,32 @@ def write_github_output(repository: str, action: str) -> None:
             print(f"action={action}", file=ghf)
 
 
-def main() -> None:
+async def validate_repo_name(repo: str) -> None:
+    """Validate repository name against GitHub canonical name.
+
+    Args:
+    ----
+        repo (str): Repository name to validate.
+
+    """
+    token = os.getenv("GITHUB_TOKEN")
+    if not token:
+        LOGGER.warning("⚠️ GITHUB_TOKEN not set, skipping canonical name validation")
+        return
+
+    canonical_repo = await get_canonical_repo_name(repo, token)
+    if canonical_repo != repo:
+        LOGGER.error(
+            f"❌ Repository name casing mismatch!\n"
+            f"   In plugins.json: '{repo}'\n"
+            f"   Canonical name:  '{canonical_repo}'\n"
+            f"   Please update plugins.json and categories.json to use '{canonical_repo}'"  # noqa: E501
+        )
+        sys.exit(1)
+    LOGGER.info(f"✅ Repository name casing is correct: {canonical_repo}")
+
+
+async def async_main() -> None:
     """Check for changes in plugins.json files."""
     old_path = Path("plugins_old.json")
     new_path = Path("plugins.json")
@@ -62,22 +125,44 @@ def main() -> None:
     added = list(new_repos - old_repos)
     removed = list(old_repos - new_repos)
 
+    # Check for case-only rename (e.g., johndoe/my-plugin -> JohnDoe/my-plugin)
+    if len(added) == 1 and len(removed) == 1:
+        added_repo = added[0]
+        removed_repo = removed[0]
+
+        if added_repo.lower() == removed_repo.lower():
+            LOGGER.info(
+                f"✅ Repository name casing updated:\n"
+                f"   Old: '{removed_repo}'\n"
+                f"   New: '{added_repo}'"
+            )
+            await validate_repo_name(added_repo)
+            # Don't set any output - this is a rename, not an add/remove
+            return
+
     if len(added) == 1 and len(removed) == 0:
         repo = added[0]
         LOGGER.info(f"✅ One repository added: {repo}")
+        await validate_repo_name(repo)
         write_github_output(repo, "add")
     elif len(added) == 0 and len(removed) == 1:
         repo = removed[0]
         LOGGER.info(f"✅ One repository removed: {repo}")
         write_github_output(repo, "remove")
+    elif len(added) == 0 and len(removed) == 0:
+        LOGGER.info("No changes to plugins.json detected.")
     else:
-        LOGGER.info(
-            "No add or remove detected (possibly only categories.json changed)."
-        )
+        LOGGER.warning("⚠️ PR must add or remove exactly one repository.")
         LOGGER.info(f"Added repositories: {added}")
         LOGGER.info(f"Removed repositories: {removed}")
         LOGGER.info(f"Added count: {len(added)}")
         LOGGER.info(f"Removed count: {len(removed)}")
+        sys.exit(1)
+
+
+def main() -> None:
+    """Entry point for the script."""
+    asyncio.run(async_main())
 
 
 if __name__ == "__main__":

@@ -1,6 +1,6 @@
 {
   "Event Management": [
-    "i-am-grub/MultiGP_Toolkit",
+    "i-am-grub/multigp_toolkit",
     "RotorHazard/Connector-FPVTrackSide",
     "FPVScores/FPVScores-Sync",
     "vikibaarathi/rh-velocidrone",
@@ -14,6 +14,7 @@
     "vikibaarathi/pilots-from-google-sheets"
   ],
   "Heat Generators": [
+    "Dutch-Drone-Racing/RH-Generator-8-Pilot-DE"
   ],
   "Class Rankings": [
     "FiorixF1/RotorHazard-Class-Rank-Brackets",
@@ -26,9 +27,12 @@
     "jrwrodgers/event_plots"
   ],
   "OSD & VRx Control": [
-    "i-am-grub/VRxC_ELRS"
+    "i-am-grub/vrxc_elrs",
+    "RotorHazard/VRxC-ClearView2",
+    "RotorHazard/VRxC-Fusion"
   ],
   "LED Effects": [
+    "HazardCreative/RotorHazard-LED-Callsign-Image"
   ],
   "Streaming & Overlays": [
     "dutchdronesquad/rh-youtube-chapters",
@@ -39,10 +43,16 @@
   "Utilities": [
     "Aaronsss/RH-sensor-monitor",
     "Aaronsss/RH-Settings-Restore",
+    "Christoph-Hofmann/oled_rotorhazard_display",
     "Dutch-Drone-Racing/RH-Plugin-EventAction-UDP-Message",
-    "i-am-grub/netpack-installer"
+    "HazardCreative/RotorHazard-Idle-Race_Handler",
+    "i-am-grub/netpack-installer",
+    "RotorHazard/LapRF-Interface"
   ],
   "Other": [
-    "Dutch-Drone-Racing/RH-Dropgate"
+    "Dutch-Drone-Racing/RH-Dropgate",
+    "HazardCreative/RotorHazard-Silly-Names",
+    "jrwrodgers/pilot_palette",
+    "MarijnKoesen/rh_race_round_announcer"
   ]
 }

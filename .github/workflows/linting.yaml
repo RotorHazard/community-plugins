@@ -11,9 +11,6 @@ on:
       - main
   workflow_dispatch:
 
-env:
-  DEFAULT_PYTHON: "3.13"
-
 jobs:
   ruff:
     name: Ruff
@@ -22,12 +19,11 @@ jobs:
       contents: read
     steps:
       - name: ⤵️ Check out code from GitHub
-        uses: actions/checkout@v4.2.2
+        uses: actions/checkout@v6.0.1
       - name: 🏗 Set up UV
-        uses: astral-sh/setup-uv@v6.1.0
+        uses: astral-sh/setup-uv@v7.2.0
         with:
           version: "latest"
-          python-version: ${{ env.DEFAULT_PYTHON }}
           enable-cache: true
       - name: 🏗 Install project dependencies
         run: uv sync --all-extras --dev
@@ -36,34 +32,33 @@ jobs:
       - name: 🚀 Run ruff formatter
         run: uv run ruff format --check .
 
-  pre-commit-hooks:
-    name: Pre-commit hooks
+  prek-hooks:
+    name: Prek hooks
     runs-on: ubuntu-latest
     permissions:
       contents: read
     steps:
       - name: ⤵️ Check out code from GitHub
-        uses: actions/checkout@v4.2.2
+        uses: actions/checkout@v6.0.1
       - name: 🏗 Set up UV
-        uses: astral-sh/setup-uv@v6.1.0
+        uses: astral-sh/setup-uv@v7.2.0
         with:
           version: "latest"
-          python-version: ${{ env.DEFAULT_PYTHON }}
           enable-cache: true
       - name: 🏗 Install project dependencies
         run: uv sync --all-extras --dev
       - name: 🚀 Check Python AST
-        run: uv run pre-commit run check-ast --all-files
+        run: uv run prek run check-ast --all-files
       - name: 🚀 Check for case conflicts
-        run: uv run pre-commit run check-case-conflict --all-files
+        run: uv run prek run check-case-conflict --all-files
       - name: 🚀 Check docstring is first
-        run: uv run pre-commit run check-docstring-first --all-files
+        run: uv run prek run check-docstring-first --all-files
       - name: 🚀 Detect Private Keys
-        run: uv run pre-commit run detect-private-key --all-files
+        run: uv run prek run detect-private-key --all-files
       - name: 🚀 Check End of Files
-        run: uv run pre-commit run end-of-file-fixer --all-files
+        run: uv run prek run end-of-file-fixer --all-files
       - name: 🚀 Trim Trailing Whitespace
-        run: uv run pre-commit run trailing-whitespace --all-files
+        run: uv run prek run trailing-whitespace --all-files
 
   jq:
     name: JQ
@@ -72,7 +67,7 @@ jobs:
       contents: read
     steps:
       - name: ⤵️ Check out code from GitHub
-        uses: actions/checkout@v4.2.2
+        uses: actions/checkout@v6.0.1
       - name: 🚀 Validate JSON files
         run: jq --raw-output . *.json
 
@@ -83,7 +78,7 @@ jobs:
       contents: read
     steps:
       - name: ⤵️ Check out code from GitHub
-        uses: actions/checkout@v4.2.2
+        uses: actions/checkout@v6.0.1
       - name: 🚀 Repositories
         uses: cardinalby/schema-validator-action@3.1.1
         with:
@@ -107,12 +102,11 @@ jobs:
       contents: read
     steps:
       - name: ⤵️ Check out code from GitHub
-        uses: actions/checkout@v4.2.2
+        uses: actions/checkout@v6.0.1
       - name: 🏗 Set up UV
-        uses: astral-sh/setup-uv@v6.1.0
+        uses: astral-sh/setup-uv@v7.2.0
         with:
           version: "latest"
-          python-version: ${{ env.DEFAULT_PYTHON }}
           enable-cache: true
       - name: 🏗 Install project dependencies
         run: uv sync --all-extras --dev

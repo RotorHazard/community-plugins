@@ -12,7 +12,6 @@ on:
 
 env:
   VERSION: "v1"
-  DEFAULT_PYTHON: "3.13"
 
 concurrency:
   group: upload-files
@@ -26,36 +25,29 @@ jobs:
       contents: read
     steps:
       - name: ⤵️ Check out code
-        uses: actions/checkout@v4.2.2
-
+        uses: actions/checkout@v6.0.1
       - name: 🏗 Set up UV
-        uses: astral-sh/setup-uv@v6.1.0
+        uses: astral-sh/setup-uv@v7.2.0
         with:
           version: "latest"
-          python-version: ${{ env.DEFAULT_PYTHON }}
           enable-cache: true
-
       - name: 🏗 Install project dependencies
         run: uv sync --no-group dev
-
       - name: Validate removed.json with JSON schema
         uses: cardinalby/schema-validator-action@3.1.1
         with:
           file: removed.json
           schema: tools/jsonschema/removed.schema.json
-
       - name: Validate categories.json with JSON schema
         uses: cardinalby/schema-validator-action@3.1.1
         with:
           file: categories.json
           schema: tools/jsonschema/categories.schema.json
-
       - name: Process Removed File
         run: |
           mkdir -p removed
           jq -c . < removed.json > removed/data.json
           jq -c '[.[].repository]' < removed.json > removed/repositories.json
-
       - name: ⤴️ Upload data to Cloudflare R2
         run: |
           uv run aws s3 sync \
@@ -70,7 +62,6 @@ jobs:
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.CF_R2_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.CF_R2_SECRET_ACCESS_KEY }}
-
       - name: Bust Cloudflare cache
         run: |
           curl --silent --show-error --fail -X POST \

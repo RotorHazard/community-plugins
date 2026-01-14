@@ -18,8 +18,8 @@ theme:
   name: material
   favicon: assets/img/favicon.ico
   language: en
-  icon:
-    logo: fontawesome/solid/puzzle-piece
+  custom_dir: docs/overrides
+  logo: assets/img/logo_light.svg
   palette:
     # Palette toggle for light mode
     - media: "(prefers-color-scheme: light)"
@@ -61,14 +61,23 @@ plugins:
 
 nav:
   - Home: index.md
-  - Plugin Database: database.md
+  - Plugins Database: database.md
   - Publish a Plugin:
     - Getting started:
       - docs/plugin/index.md
-    - docs/plugin/include.md
-    - docs/plugin/remove.md
+    - Include repository: docs/plugin/include.md
+    - Remove repository: docs/plugin/remove.md
+    - Build your first plugin: docs/plugin/tutorial.md
   - RHFest Action:
     - docs/rhfest/index.md
+  - FAQ:
+    - faq/index.md
+    - faq/general.md
+    - faq/development.md
+    - faq/publishing.md
+    - faq/troubleshooting.md
+    - faq/categories.md
+    - faq/licensing.md
   - Help:
     - help/index.md
 
@@ -94,8 +103,13 @@ markdown_extensions:
 extra_javascript:
   - assets/js/dataLoader.js
 
+# Extra CSS
+extra_css:
+  - assets/css/faq.css
+
 # Extra
 extra:
+  manifest: assets/manifest.json
   social:
     - icon: fontawesome/brands/github
       link: https://github.com/RotorHazard

@@ -1,6 +1,6 @@
 ---
 # This workflow will build and deploy the documentation to GitHub Pages
-name: Deployment
+name: Docs deployment
 
 # yamllint disable-line rule:truthy
 on:
@@ -10,9 +10,7 @@ on:
     paths:
       - "docs/**"
       - "mkdocs.yml"
-
-env:
-  DEFAULT_PYTHON: "3.13"
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -26,18 +24,17 @@ jobs:
       contents: read
     steps:
       - name: ⤵️ Check out code from GitHub
-        uses: actions/checkout@v4.2.2
+        uses: actions/checkout@v6.0.1
       - name: 🏗 Set up UV
-        uses: astral-sh/setup-uv@v6.1.0
+        uses: astral-sh/setup-uv@v7.2.0
         with:
           version: "latest"
-          python-version: ${{ env.DEFAULT_PYTHON }}
       - name: 🏗 Install dependencies
         run: uv sync --group docs
       - name: 🏗 Build documentation
         run: uv run mkdocs build
       - name: ⬆️ Upload pages artifacts
-        uses: actions/upload-pages-artifact@v3.0.1
+        uses: actions/upload-pages-artifact@v4.0.0
         with:
           path: site
 
