@@ -75,7 +75,7 @@ jobs:
       actions: read
     steps:
       - name: ⤵️ Check out code
-        uses: actions/checkout@v6.0.1
+        uses: actions/checkout@v6.0.2
 
       - name: 🏗 Set up UV
         uses: astral-sh/setup-uv@v7.2.0
@@ -174,7 +174,7 @@ jobs:
       actions: read
     steps:
       - name: ⤵️ Check out code
-        uses: actions/checkout@v6.0.1
+        uses: actions/checkout@v6.0.2
 
       - name: 🏗 Set up UV
         uses: astral-sh/setup-uv@v7.2.0
