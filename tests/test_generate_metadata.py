@@ -4,6 +4,7 @@ import base64
 import json
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import Self
 from unittest.mock import AsyncMock
 
 import pytest
@@ -470,8 +471,8 @@ async def test_summary_generator_counts(
             return {2: {"repository": "ok"}}
 
     class FakeGitHub:
-        async def __aenter__(self) -> "FakeGitHub":
-            return self
+        async def __aenter__(self) -> Self:
+            return Self
 
         async def __aexit__(self, *_args: object) -> None:
             pass
