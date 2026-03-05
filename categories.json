@@ -47,6 +47,7 @@
     "Dutch-Drone-Racing/RH-Plugin-EventAction-UDP-Message",
     "HazardCreative/RotorHazard-Idle-Race_Handler",
     "i-am-grub/netpack-installer",
+    "jrwrodgers/rh-wled-ctr",
     "RotorHazard/LapRF-Interface"
   ],
   "Other": [
