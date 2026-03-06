@@ -5,7 +5,8 @@
     "FPVScores/FPVScores-Sync",
     "vikibaarathi/rh-velocidrone",
     "vikibaarathi/RHCloudlink-plugin",
-    "gvotteler/next-rotorhazard-plugin"
+    "gvotteler/next-rotorhazard-plugin",
+    "arulrajesh/RH-Pilot-Queue"
   ],
   "Data Import & Export": [
     "L1cardo/RH-Pilot-Local-Importer",
