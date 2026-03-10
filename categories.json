@@ -33,7 +33,8 @@
     "RotorHazard/VRxC-Fusion"
   ],
   "LED Effects": [
-    "HazardCreative/RotorHazard-LED-Callsign-Image"
+    "HazardCreative/RotorHazard-LED-Callsign-Image",
+    "jrwrodgers/rh-wled-ctr"
   ],
   "Streaming & Overlays": [
     "dutchdronesquad/rh-youtube-chapters",
