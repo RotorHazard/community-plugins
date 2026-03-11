@@ -12,7 +12,7 @@
     "L1cardo/RH-Pilot-Local-Importer",
     "L1cardo/RH-Last-Race-Exporter",
     "L1cardo/RH-Pilot-CSV-Importer",
-    "vikibaarathi/pilots-from-google-sheets"
+    "vikibaarathi/rh-google-connector"
   ],
   "Heat Generators": [
     "Dutch-Drone-Racing/RH-Generator-8-Pilot-DE"
