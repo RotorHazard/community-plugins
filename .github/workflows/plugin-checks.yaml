@@ -170,7 +170,7 @@ jobs:
       - name: ⤵️ Clone added plugin repository
         run: git clone --depth 1 "https://github.com/${{ needs.preflight.outputs.repository }}" .
       - name: 🚀 Run RHFest Validation
-        uses: docker://ghcr.io/rotorhazard/rhfest-action:v3.0.0
+        uses: docker://ghcr.io/rotorhazard/rhfest-action:v3.0.1
 
   # 6) Aggregator: single required status
   checks:
