@@ -34,7 +34,8 @@
   ],
   "LED Effects": [
     "HazardCreative/RotorHazard-LED-Callsign-Image",
-    "jrwrodgers/rh-wled-ctr"
+    "jrwrodgers/rh-wled-ctr",
+    "PSi86/RaceLink_RH-plugin"
   ],
   "Streaming & Overlays": [
     "dutchdronesquad/rh-youtube-chapters",
@@ -49,6 +50,7 @@
     "Dutch-Drone-Racing/RH-Plugin-EventAction-UDP-Message",
     "HazardCreative/RotorHazard-Idle-Race_Handler",
     "i-am-grub/netpack-installer",
+    "PSi86/RaceLink_RH-plugin",
     "RotorHazard/LapRF-Interface"
   ],
   "Other": [
