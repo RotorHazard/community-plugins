@@ -34,8 +34,7 @@
   ],
   "LED Effects": [
     "HazardCreative/RotorHazard-LED-Callsign-Image",
-    "jrwrodgers/rh-wled-ctr",
-    "PSi86/RaceLink_RH-plugin"
+    "jrwrodgers/rh-wled-ctr"
   ],
   "Streaming & Overlays": [
     "dutchdronesquad/rh-youtube-chapters",
