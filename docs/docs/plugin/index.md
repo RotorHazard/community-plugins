@@ -107,8 +107,10 @@ RotorHazard relies on versioned releases to check for updates and ensure users c
 - Bump the `version` field in `manifest.json` to the upcoming version.
 - Use [GitHub Releases][github-releases] to create a release.
 - The SemVer part of the release tag must match the `version` field in `manifest.json`.
-- You can also add the plugin code as a ZIP file to the release assets (optional).
-    - If you do this, you must include the `zip_filename` field in `manifest.json`, specifying the exact filename of the ZIP file in the release assets.
+- You can also add a ZIP file with plugin code to the release assets (optional).
+    - If the ZIP asset is named `{plugin_domain}.zip`, you do not need to set `zip_filename`.
+    - Otherwise, set `zip_filename` to the exact filename of the ZIP asset that RotorHazard should install from the GitHub release.
+    - If your release contains other ZIP assets that are unrelated to plugin installation, you do not need to add `zip_filename` for those files.
 
 By following this approach, users will automatically be noticed when a new version of your plugin is available for installation.
 
