@@ -612,10 +612,10 @@ async def test_fetch_metadata_early_exit_on_version_validation(
     assert result is None
 
 
-async def test_build_releases_metadata_missing_zip(
+async def test_build_releases_metadata_ignores_unrelated_zip_assets(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """Logs warning when zip_filename is missing in assets."""
+    """Do not warn when a release has zip assets but no zip_filename is set."""
     plugin = PluginMetadataGenerator("owner/repo")
     plugin.manifest_data = {"name": "X"}  # No zip_filename
 
@@ -638,7 +638,7 @@ async def test_build_releases_metadata_missing_zip(
 
     releases = await plugin._build_releases_metadata(AsyncMock())
     assert releases[0]["tag_name"] == "v1"
-    assert any("zip_filename" in message for _level, message in plugin.logger.buffer)
+    assert not plugin.logger.buffer
 
 
 async def test_missing_asset_warning_only_on_used_ref(
