@@ -24,8 +24,7 @@ dev = [
   "syrupy==5.1.0",
 ]
 docs = [
-  "mkdocs>=1.6.1",
-  "mkdocs-material>=9.6.5",
+  "zensical>=0.0.33",
 ]
 
 [tool.uv]
