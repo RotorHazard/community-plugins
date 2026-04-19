@@ -73,6 +73,7 @@ async function showAllPlugins() {
 
     // Setup clear search button
     setupClearSearchButton();
+    setupRefreshButton();
 
     requestIdleCallback(() => renderPlugins(), { timeout: 300 });
 }
@@ -141,6 +142,46 @@ function setupClearSearchButton() {
         clearBtn.style.display = "none";
         window.currentPage = 1;
         renderPlugins();
+    });
+}
+
+/**
+ * Setup refresh button to bypass cached plugin data.
+ */
+function setupRefreshButton() {
+    const refreshBtn = document.getElementById("refresh-data");
+    const container = document.getElementById("plugin-container");
+    const categorySelect = document.getElementById("category");
+    if (!refreshBtn || !container || !categorySelect || refreshBtn.dataset.bound === "true") return;
+
+    refreshBtn.dataset.bound = "true";
+    refreshBtn.addEventListener("click", async () => {
+        const refreshIcon = refreshBtn.querySelector(".refresh-icon");
+        const refreshLabel = refreshBtn.querySelector(".refresh-label");
+        const originalIcon = refreshIcon?.textContent || "↻";
+        const originalLabel = refreshLabel?.textContent || "Refresh";
+        const selectedCategory = categorySelect.value;
+
+        refreshBtn.disabled = true;
+        if (refreshIcon) refreshIcon.textContent = "…";
+        if (refreshLabel) refreshLabel.textContent = "Refreshing";
+        refreshBtn.setAttribute("aria-label", "Refreshing data");
+        refreshBtn.setAttribute("title", "Refreshing data");
+        container.innerHTML = "";
+        container.appendChild(createSkeletonCards(window.itemsPerPage));
+
+        await fetchPluginData(null, true);
+        window.currentPage = 1;
+        populateCategoryDropdown(window.pluginData);
+        categorySelect.value = selectedCategory;
+        lastFilterKey = "";
+        renderPlugins();
+
+        refreshBtn.disabled = false;
+        if (refreshIcon) refreshIcon.textContent = originalIcon;
+        if (refreshLabel) refreshLabel.textContent = originalLabel;
+        refreshBtn.setAttribute("aria-label", "Refresh data");
+        refreshBtn.setAttribute("title", "Refresh data");
     });
 }
 
