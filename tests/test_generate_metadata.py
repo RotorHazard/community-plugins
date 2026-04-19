@@ -1,14 +1,18 @@
 """Tests for the Generate Metadata script."""
 
+import asyncio
 import base64
 import json
+import runpy
+import sys
+import types
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Self
 from unittest.mock import AsyncMock
 
 import pytest
-from aiogithubapi import GitHubNotFoundException
+from aiogithubapi import GitHubException, GitHubNotFoundException
 from metadata import (
     PluginMetadataGenerator,
     validate_manifest_domain,
@@ -21,6 +25,8 @@ from tests.conftest import MockRelease, MockReleaseAsset
 
 from . import load_fixture
 from .conftest import MockGitHubResponse, MockRepo
+
+TEST_GITHUB_TOKEN = "token-123"  # noqa: S105
 
 
 @pytest.mark.freeze_time("2025-03-09 15:00:00+01:00")
@@ -612,6 +618,43 @@ async def test_fetch_metadata_early_exit_on_version_validation(
     assert result is None
 
 
+async def test_fetch_metadata_handles_github_exception(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """fetch_metadata returns None if a GitHubException occurs mid-generation."""
+    plugin = PluginMetadataGenerator("owner/repo")
+
+    async def fake_fetch_repository_info(_github: AsyncMock) -> bool:
+        plugin.repo_metadata = MockRepo(full_name="owner/repo")
+        plugin.repo = "owner/repo"
+        return True
+
+    monkeypatch.setattr(plugin, "fetch_repository_info", fake_fetch_repository_info)
+    monkeypatch.setattr(plugin, "fetch_github_releases", AsyncMock(return_value=True))
+    monkeypatch.setattr(
+        plugin, "validate_plugin_repository", AsyncMock(return_value=True)
+    )
+    monkeypatch.setattr(plugin, "fetch_manifest_file", AsyncMock(return_value=True))
+    monkeypatch.setattr(
+        "metadata.plugin_metadata_generator.validate_manifest_domain",
+        lambda *_args, **_kwargs: True,
+    )
+    monkeypatch.setattr(
+        "metadata.plugin_metadata_generator.validate_manifest_version",
+        lambda *_args, **_kwargs: True,
+    )
+    plugin.manifest_data = {"name": "X", "domain": "d", "version": "1.0.0"}
+    monkeypatch.setattr(
+        plugin,
+        "_build_releases_metadata",
+        AsyncMock(side_effect=GitHubException()),
+    )
+
+    result = await plugin.fetch_metadata(AsyncMock())
+
+    assert result is None
+
+
 async def test_build_releases_metadata_ignores_unrelated_zip_assets(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -674,3 +717,119 @@ async def test_missing_asset_warning_only_on_used_ref(
     assert len(releases) == 2
     # No warnings because used_ref (v2) had the asset, v1 missing does not warn
     assert not plugin.logger.buffer
+
+
+async def test_build_releases_metadata_skips_missing_and_duplicate_assets(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Unnamed and duplicate assets should be skipped before asset lookup."""
+    plugin = PluginMetadataGenerator("owner/repo")
+    plugin.manifest_data = {"name": "X"}
+
+    class Release:
+        def __init__(self) -> None:
+            self.tag_name = "v1"
+            self.published_at = datetime.now(UTC)
+            self.prerelease = False
+            self.assets = [
+                type("Asset", (), {"name": None})(),
+                type("Asset", (), {"name": "plugin.zip"})(),
+                type("Asset", (), {"name": "plugin.zip"})(),
+            ]
+
+    asset_lookup = AsyncMock(return_value={"name": "plugin.zip"})
+    plugin.releases = [Release()]
+    monkeypatch.setattr(
+        "metadata.plugin_metadata_generator.get_release_asset_info",
+        asset_lookup,
+    )
+
+    releases = await plugin._build_releases_metadata(AsyncMock())
+
+    assert releases == [
+        {
+            "tag_name": "v1",
+            "published_at": plugin.releases[0].published_at,
+            "prerelease": False,
+            "assets": [{"name": "plugin.zip"}],
+        }
+    ]
+    assert asset_lookup.await_count == 1
+
+
+async def test_build_releases_metadata_warns_for_missing_manifest_zip_on_used_ref(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Warn when manifest zip_filename is absent from the release for used_ref."""
+    plugin = PluginMetadataGenerator("owner/repo")
+    plugin.manifest_data = {"name": "X", "zip_filename": "bundle.zip"}
+
+    class Release:
+        def __init__(self) -> None:
+            self.tag_name = "v1"
+            self.published_at = datetime.now(UTC)
+            self.prerelease = False
+            self.assets = [type("Asset", (), {"name": "other.zip"})()]
+
+    plugin.releases = [Release()]
+    monkeypatch.setattr(
+        "metadata.plugin_metadata_generator.get_release_asset_info",
+        AsyncMock(return_value=None),
+    )
+
+    releases = await plugin._build_releases_metadata(AsyncMock())
+
+    assert releases == [
+        {
+            "tag_name": "v1",
+            "published_at": plugin.releases[0].published_at,
+            "prerelease": False,
+        }
+    ]
+    assert any(
+        message == "Manifest `zip_filename` 'bundle.zip' was not found in release v1."
+        for _level, message in plugin.logger.buffer
+    )
+
+
+def test_metadata_main_runs_summary_generator(monkeypatch: pytest.MonkeyPatch) -> None:
+    """metadata/main.py should instantiate SummaryGenerator and run generate()."""
+    calls: dict[str, object] = {}
+    fake_output_dir = Path("/safe/test-output")
+    fake_plugin_list_file = Path("/safe/test-plugins.json")
+
+    class FakeSummaryGenerator:
+        def __init__(self, plugin_file: str, output_dir: str) -> None:
+            calls["plugin_file"] = plugin_file
+            calls["output_dir"] = output_dir
+
+        async def generate(self, token: str) -> str:
+            calls["token"] = token
+            return "generated"
+
+    fake_const = types.SimpleNamespace(
+        GITHUB_TOKEN=TEST_GITHUB_TOKEN,
+        OUTPUT_DIR=str(fake_output_dir),
+        PLUGIN_LIST_FILE=str(fake_plugin_list_file),
+    )
+    fake_summary_module = types.SimpleNamespace(SummaryGenerator=FakeSummaryGenerator)
+    original_asyncio_run = asyncio.run
+
+    def fake_run(awaitable: object) -> None:
+        calls["awaitable"] = awaitable
+        calls["result"] = original_asyncio_run(awaitable)
+
+    monkeypatch.setitem(sys.modules, "const", fake_const)
+    monkeypatch.setitem(sys.modules, "summary_generator", fake_summary_module)
+    monkeypatch.setattr(asyncio, "run", fake_run)
+
+    runpy.run_path(
+        "/home/klaas/community-plugins/metadata/main.py",
+        run_name="__main__",
+    )
+
+    assert calls["plugin_file"] == str(fake_plugin_list_file)
+    assert calls["output_dir"] == str(fake_output_dir)
+    assert calls["token"] == TEST_GITHUB_TOKEN
+    assert calls["awaitable"] is not None
+    assert calls["result"] == "generated"

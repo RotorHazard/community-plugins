@@ -1,11 +1,17 @@
 """Check if a repository is in categories.json."""
 
 import argparse
+import asyncio
 import json
 import logging
 import os
 import sys
 from pathlib import Path
+
+from aiogithubapi import GitHubAPI, GitHubException
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Logging setup (GitHub Actions compatible)
 logging.addLevelName(logging.INFO, "")
@@ -19,7 +25,42 @@ logging.basicConfig(
 LOGGER = logging.getLogger(__name__)
 
 
-def check_repository_in_categories(repo: str, action: str, categories_file: str) -> int:  # noqa: PLR0911
+def load_json_file(file_path: str) -> list[str] | dict[str, list[str]] | None:
+    """Load a JSON file and return the parsed data."""
+    try:
+        with Path(file_path).open(encoding="utf-8") as file:
+            return json.load(file)
+    except FileNotFoundError:
+        LOGGER.exception(f"Could not find '{file_path}'. Ensure it exists.")
+    except json.JSONDecodeError:
+        LOGGER.exception(f"Invalid JSON format in '{file_path}'")
+    except Exception:
+        LOGGER.exception(f"Unexpected error reading '{file_path}'")
+    return None
+
+
+def load_categories_repositories(categories_file: str) -> set[str] | None:
+    """Load and flatten all repository names from categories.json."""
+    categories_data = load_json_file(categories_file)
+    if not isinstance(categories_data, dict):
+        return None
+
+    categorized_repos = set()
+    for repos in categories_data.values():
+        if isinstance(repos, list):
+            categorized_repos.update(repos)
+    return categorized_repos
+
+
+def load_plugins_repositories(plugins_file: str) -> set[str] | None:
+    """Load all repository names from plugins.json."""
+    plugins_data = load_json_file(plugins_file)
+    if not isinstance(plugins_data, list):
+        return None
+    return set(plugins_data)
+
+
+def check_repository_in_categories(repo: str, action: str, categories_file: str) -> int:
     """Check if a repository is in categories.json.
 
     Args:
@@ -33,23 +74,11 @@ def check_repository_in_categories(repo: str, action: str, categories_file: str)
         int: 0 if the check passes, 1 if it fails.
 
     """
-    try:
-        with Path(categories_file).open(encoding="utf-8") as file:
-            data = json.load(file)
-    except FileNotFoundError:
-        LOGGER.exception(f"Could not find '{categories_file}'. Ensure it exists.")
-        return 1
-    except json.JSONDecodeError:
-        LOGGER.exception(f"Invalid JSON format in '{categories_file}'")
-        return 1
-    except Exception:
-        LOGGER.exception(f"Unexpected error reading '{categories_file}'")
+    categorized_repos = load_categories_repositories(categories_file)
+    if categorized_repos is None:
         return 1
 
-    # Flatten all repos from all categories
-    repo_count = sum(
-        repo in (repos if isinstance(repos, list) else []) for repos in data.values()
-    )
+    repo_count = int(repo in categorized_repos)
 
     if action == "add":
         if repo_count != 1:
@@ -71,7 +100,7 @@ def check_repository_in_categories(repo: str, action: str, categories_file: str)
     return 0
 
 
-def check_categories_plugins_sync(categories_file: str, plugins_file: str) -> int:  # noqa: PLR0911
+def check_categories_plugins_sync(categories_file: str, plugins_file: str) -> int:
     """Check if all repositories in categories.json exist in plugins.json.
 
     Args:
@@ -84,40 +113,14 @@ def check_categories_plugins_sync(categories_file: str, plugins_file: str) -> in
         int: 0 if all checks pass, 1 if there are errors.
 
     """
-    errors = 0
-    try:
-        with Path(plugins_file).open(encoding="utf-8") as pf:
-            plugins_list = set(json.load(pf))
-    except FileNotFoundError:
-        LOGGER.exception(f"Could not find '{plugins_file}'. Ensure it exists.")
-        return 1
-    except json.JSONDecodeError:
-        LOGGER.exception(f"Invalid JSON format in '{plugins_file}'")
-        return 1
-    except Exception:
-        LOGGER.exception(f"Unexpected error reading '{plugins_file}'")
+    plugins_list = load_plugins_repositories(plugins_file)
+    if plugins_list is None:
         return 1
 
-    try:
-        with Path(categories_file).open(encoding="utf-8") as cf:
-            categories_data = json.load(cf)
-    except FileNotFoundError:
-        LOGGER.exception(f"Could not find '{categories_file}'. Ensure it exists.")
-        return 1
-    except json.JSONDecodeError:
-        LOGGER.exception(f"Invalid JSON format in '{categories_file}'")
-        return 1
-    except Exception:
-        LOGGER.exception(f"Unexpected error reading '{categories_file}'")
+    categorized_repos = load_categories_repositories(categories_file)
+    if categorized_repos is None:
         return 1
 
-    # Flatten all categorized repositories
-    categorized_repos = set()
-    for repos in categories_data.values():
-        if isinstance(repos, list):
-            categorized_repos.update(repos)
-
-    # Check 1: Every plugin in plugins.json is categorized
     uncategorized = sorted(
         [repo for repo in plugins_list if repo not in categorized_repos]
     )
@@ -125,9 +128,7 @@ def check_categories_plugins_sync(categories_file: str, plugins_file: str) -> in
         LOGGER.error(
             f"Repository '{repo}' exists in plugins.json but is NOT assigned to any category!"  # noqa: E501
         )
-        errors += 1
 
-    # Check 2: Every categorized repo exists in plugins.json
     orphaned_categories = sorted(
         [repo for repo in categorized_repos if repo not in plugins_list]
     )
@@ -135,8 +136,8 @@ def check_categories_plugins_sync(categories_file: str, plugins_file: str) -> in
         LOGGER.error(
             f"Repository '{repo}' in categories.json does not exist in plugins.json!"
         )
-        errors += 1
 
+    errors = len(uncategorized) + len(orphaned_categories)
     if errors == 0:
         LOGGER.info(
             "✅ All plugins are categorized, and all categories.json entries exist in plugins.json."  # noqa: E501
@@ -145,6 +146,58 @@ def check_categories_plugins_sync(categories_file: str, plugins_file: str) -> in
         LOGGER.error(
             f"❌ {errors} error(s): {len(uncategorized)} plugin(s) not categorized, {len(orphaned_categories)} orphaned category entry(ies)."  # noqa: E501
         )
+    return errors
+
+
+async def check_canonical_repository_names(
+    categories_file: str, plugins_file: str
+) -> int:
+    """Validate repo names against GitHub's canonical repository names."""
+    token = os.getenv("GITHUB_TOKEN")
+    if not token:
+        LOGGER.warning("⚠️ GITHUB_TOKEN not set, skipping canonical name validation")
+        return 0
+
+    plugins_list = load_plugins_repositories(plugins_file)
+    if plugins_list is None:
+        return 1
+
+    categorized_repos = load_categories_repositories(categories_file)
+    if categorized_repos is None:
+        return 1
+
+    errors = 0
+    all_repositories = sorted(plugins_list | categorized_repos)
+
+    async with GitHubAPI(token) as github:
+        for repo in all_repositories:
+            try:
+                response = await github.repos.get(repo)
+            except GitHubException:
+                LOGGER.exception(f"Failed to fetch repository info for '{repo}'.")
+                errors += 1
+                continue
+
+            canonical_repo = response.data.full_name
+            if canonical_repo != repo:
+                locations = []
+                if repo in plugins_list:
+                    locations.append("plugins.json")
+                if repo in categorized_repos:
+                    locations.append("categories.json")
+                joined_locations = " and ".join(locations)
+                LOGGER.error(
+                    f"❌ Repository name mismatch detected!\n"
+                    f"   In {joined_locations}: '{repo}'\n"
+                    f"   Canonical name:      '{canonical_repo}'\n"
+                    "   This usually means the repository was renamed or recased "
+                    "on GitHub.\n"
+                    f"   Please update plugins.json and categories.json to use '{canonical_repo}'"  # noqa: E501
+                )
+                errors += 1
+
+    if errors == 0:
+        LOGGER.info("✅ All repository names match GitHub canonical names.")
     return errors
 
 
@@ -171,7 +224,6 @@ if __name__ == "__main__":
     args = parser.parse_args()
     error_count = 0
 
-    # Only strict check if action + repo given
     if args.action:
         repo = os.environ.get("REPOSITORY")
         if not repo:
@@ -182,8 +234,10 @@ if __name__ == "__main__":
             repo, args.action, args.categories_file
         )
 
-    # Always run sync check
     error_count += check_categories_plugins_sync(
         args.categories_file, args.plugins_file
+    )
+    error_count += asyncio.run(
+        check_canonical_repository_names(args.categories_file, args.plugins_file)
     )
     sys.exit(1 if error_count else 0)
