@@ -114,6 +114,36 @@ async def validate_repo_name(repo: str) -> None:
     LOGGER.info(f"✅ Repository name casing is correct: {canonical_repo}")
 
 
+async def validate_repo_rename(old_repo: str, new_repo: str) -> bool:
+    """Validate whether a removed+added pair is a legitimate repository rename."""
+    token = os.getenv("GITHUB_TOKEN")
+    if not token:
+        LOGGER.warning("⚠️ GITHUB_TOKEN not set, skipping rename validation")
+        return False
+
+    canonical_old_repo = await get_canonical_repo_name(old_repo, token)
+    if canonical_old_repo != new_repo:
+        return False
+
+    LOGGER.info(f"✅ Repository renamed:\n   Old: '{old_repo}'\n   New: '{new_repo}'")
+    await validate_repo_name(new_repo)
+    return True
+
+
+async def handle_repo_rename(old_repo: str, new_repo: str) -> bool:
+    """Handle case-only updates and GitHub-confirmed repository renames."""
+    if new_repo.lower() == old_repo.lower():
+        LOGGER.info(
+            f"✅ Repository name casing updated:\n"
+            f"   Old: '{old_repo}'\n"
+            f"   New: '{new_repo}'"
+        )
+        await validate_repo_name(new_repo)
+        return True
+
+    return await validate_repo_rename(old_repo, new_repo)
+
+
 async def async_main() -> None:
     """Check for changes in plugins.json files."""
     old_path = Path("plugins_old.json")
@@ -125,18 +155,12 @@ async def async_main() -> None:
     added = list(new_repos - old_repos)
     removed = list(old_repos - new_repos)
 
-    # Check for case-only rename (e.g., johndoe/my-plugin -> JohnDoe/my-plugin)
+    # Check for repository rename (case-only or GitHub-confirmed rename)
     if len(added) == 1 and len(removed) == 1:
         added_repo = added[0]
         removed_repo = removed[0]
 
-        if added_repo.lower() == removed_repo.lower():
-            LOGGER.info(
-                f"✅ Repository name casing updated:\n"
-                f"   Old: '{removed_repo}'\n"
-                f"   New: '{added_repo}'"
-            )
-            await validate_repo_name(added_repo)
+        if await handle_repo_rename(removed_repo, added_repo):
             # Don't set any output - this is a rename, not an add/remove
             return
 
