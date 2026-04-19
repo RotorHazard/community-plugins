@@ -28,6 +28,10 @@ hide:
       <option value="forks">🍴 Forks</option>
     </select>
   </div>
+  <button id="refresh-data" class="refresh-btn" type="button" title="Refresh data" aria-label="Refresh data">
+    <span class="refresh-icon" aria-hidden="true">↻</span>
+    <span class="refresh-label">Refresh</span>
+  </button>
 </div>
 
 <div id="results-info"></div>
