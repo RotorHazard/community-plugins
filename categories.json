@@ -15,9 +15,11 @@
     "vikibaarathi/rh-google-connector"
   ],
   "Heat Generators": [
+    "arnaudmorin/RotorHazard-Generator-FAI-like-8-pilots",
     "Dutch-Drone-Racing/RH-Generator-8-Pilot-DE"
   ],
   "Class Rankings": [
+    "arnaudmorin/RotorHazard-Class-Rank-Best-X-Laps-Cumulative",
     "FiorixF1/RotorHazard-Class-Rank-Brackets",
     "Aaronsss/cumulative-points-per-heat-RH-plugin",
     "HazardCreative/RotorHazard-Class-Rank-Best-X-Laps",
