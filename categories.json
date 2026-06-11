@@ -15,6 +15,7 @@
     "vikibaarathi/rh-google-connector"
   ],
   "Heat Generators": [
+    "arnaudmorin/RotorHazard-Generator-FAI-like-8-pilots",
     "Dutch-Drone-Racing/RH-Generator-8-Pilot-DE"
   ],
   "Class Rankings": [
