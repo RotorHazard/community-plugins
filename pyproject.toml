@@ -20,7 +20,7 @@ dev = [
   "pytest-asyncio==1.4.0",
   "pytest-cov==7.1.0",
   "pytest-freezer==0.4.9",
-  "ruff==0.15.17",
+  "ruff==0.15.20",
   "syrupy==5.3.4",
 ]
 docs = [
