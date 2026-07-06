@@ -21,7 +21,7 @@ dev = [
   "pytest-cov==7.1.0",
   "pytest-freezer==0.4.9",
   "ruff==0.15.20",
-  "syrupy==5.3.4",
+  "syrupy==5.4.0",
 ]
 docs = [
   "zensical>=0.0.33",
