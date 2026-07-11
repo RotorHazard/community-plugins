@@ -56,13 +56,15 @@ Check whether the plugin repository is assigned to a valid category. The list of
 
 We expect at least 1 release to be published in the added repository. More about this can also be found on the [Getting started](index.md#github-releases) page.
 
+The latest stable release is selected for validation. If no stable release exists, the latest pre-release is selected instead. RHFest validates this same release tag, so make sure the repository structure and `manifest.json` are valid in the published release, not only on the default branch.
+
 ### Check Removed
 
 Check whether the plugin repository is on the list of previously removed plugins. If it is, the plugin will not be accepted/included in the community plugins database. The list of removed plugins can be found in the [`removed.json`][removed] file.
 
 ### RHFest validation
 
-Check that the `manifest.json` file and repository structure are valid. More details can be found on the dedicated [RHFest](../rhfest/index.md) page.
+Check that the selected release has a valid `manifest.json` and repository structure. More details can be found on the dedicated [RHFest](../rhfest/index.md) page.
 
 ### Lint [jq]
 

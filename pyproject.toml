@@ -20,8 +20,8 @@ dev = [
   "pytest-asyncio==1.4.0",
   "pytest-cov==7.1.0",
   "pytest-freezer==0.4.9",
-  "ruff==0.15.20",
-  "syrupy==5.4.0",
+  "ruff==0.15.21",
+  "syrupy==5.5.3",
 ]
 docs = [
   "zensical>=0.0.33",
