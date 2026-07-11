@@ -41,6 +41,6 @@ hide:
 </div>
 
 <!-- Load scripts -->
-<link rel="stylesheet" href="../assets/css/plugin-cards.css">
-<link rel="stylesheet" href="../assets/css/styles.css">
-<script src="../assets/js/plugins.js" defer></script>
+<link rel="stylesheet" href="assets/css/plugin-cards.css">
+<link rel="stylesheet" href="assets/css/styles.css">
+<script src="assets/js/plugins.js" defer></script>
