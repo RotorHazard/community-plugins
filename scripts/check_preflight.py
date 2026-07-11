@@ -9,6 +9,7 @@ from pathlib import Path
 
 from aiogithubapi import GitHubAPI, GitHubException
 from dotenv import load_dotenv
+from release_selection import select_used_ref
 
 load_dotenv()
 
@@ -80,13 +81,33 @@ async def get_canonical_repo_name(repository: str, token: str) -> str:
             return canonical_name
 
 
-def write_github_output(repository: str, action: str) -> None:
+def write_github_output(repository: str, action: str, ref: str = "") -> None:
     """Write outputs to GITHUB_OUTPUT for use in workflow."""
     github_output = os.environ.get("GITHUB_OUTPUT")
     if github_output:
         with Path.open(github_output, "a", encoding="utf-8") as ghf:
             print(f"repository={repository}", file=ghf)
             print(f"action={action}", file=ghf)
+            print(f"ref={ref}", file=ghf)
+
+
+async def get_used_ref(repository: str, token: str) -> str:
+    """Resolve the release ref that downstream checks should use."""
+    async with GitHubAPI(token) as github:
+        try:
+            response = await github.repos.releases.list(repository)
+        except GitHubException:
+            LOGGER.exception(f"Failed to fetch releases for '{repository}'.")
+            sys.exit(1)
+
+    releases = response.data
+    if not releases:
+        LOGGER.error(f"No releases found for repository: {repository}")
+        sys.exit(1)
+
+    ref = select_used_ref(releases)
+    LOGGER.info(f"✅ Selected release ref: {ref}")
+    return ref
 
 
 async def validate_repo_name(repo: str) -> None:
@@ -168,7 +189,12 @@ async def async_main() -> None:
         repo = added[0]
         LOGGER.info(f"✅ One repository added: {repo}")
         await validate_repo_name(repo)
-        write_github_output(repo, "add")
+        token = os.getenv("GITHUB_TOKEN")
+        if not token:
+            LOGGER.error("No GitHub token provided.")
+            sys.exit(1)
+        ref = await get_used_ref(repo, token)
+        write_github_output(repo, "add", ref)
     elif len(added) == 0 and len(removed) == 1:
         repo = removed[0]
         LOGGER.info(f"✅ One repository removed: {repo}")

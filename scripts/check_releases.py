@@ -6,11 +6,10 @@ import logging
 import os
 import re
 import sys
-from pathlib import Path
-from typing import Any
 
 from aiogithubapi import GitHubAPI, GitHubException
 from dotenv import load_dotenv
+from release_selection import select_used_ref
 
 load_dotenv()
 
@@ -63,26 +62,6 @@ def is_valid_semver(tag: str) -> bool:
     return bool(SEMVER_REGEX.match(tag))
 
 
-def select_used_ref(releases: list[Any]) -> str:
-    """Select the same release ref used by the metadata generator."""
-    sorted_releases = sorted(
-        releases, key=lambda release: release.created_at, reverse=True
-    )
-    latest_stable = next(
-        (release for release in sorted_releases if not release.prerelease), None
-    )
-    selected_release = latest_stable or sorted_releases[0]
-    return selected_release.tag_name
-
-
-def write_github_output(ref: str) -> None:
-    """Expose the selected release ref to downstream workflow jobs."""
-    github_output = os.getenv("GITHUB_OUTPUT")
-    if github_output:
-        with Path.open(github_output, "a", encoding="utf-8") as output_file:
-            print(f"ref={ref}", file=output_file)
-
-
 async def check_releases(repository: str, token: str) -> None:
     """Check if a GitHub repository has at least one release.
 
@@ -115,7 +94,6 @@ async def check_releases(repository: str, token: str) -> None:
             sys.exit(1)
         else:
             LOGGER.info("✅ The selected release tag follows SemVer.")
-            write_github_output(tag)
 
 
 if __name__ == "__main__":

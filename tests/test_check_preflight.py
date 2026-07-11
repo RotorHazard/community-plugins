@@ -22,6 +22,45 @@ def load_script_module() -> ModuleType:
 
 
 @pytest.mark.asyncio
+async def test_async_main_outputs_release_ref_for_added_repository(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """An added repository should expose its selected release ref."""
+    module = load_script_module()
+    repository = "owner/repository"
+    outputs = {}
+
+    (tmp_path / "plugins_old.json").write_text("[]", encoding="utf-8")
+    (tmp_path / "plugins.json").write_text(json.dumps([repository]), encoding="utf-8")
+
+    async def fake_validate_repo_name(repo: str) -> None:
+        assert repo == repository
+
+    async def fake_get_used_ref(repo: str, token: str) -> str:
+        assert repo == repository
+        assert token == TEST_GITHUB_TOKEN
+        return "v1.2.3"
+
+    def fake_write_github_output(repository: str, action: str, ref: str = "") -> None:
+        outputs.update(repository=repository, action=action, ref=ref)
+
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("GITHUB_TOKEN", TEST_GITHUB_TOKEN)
+    monkeypatch.setattr(module, "validate_repo_name", fake_validate_repo_name)
+    monkeypatch.setattr(module, "get_used_ref", fake_get_used_ref)
+    monkeypatch.setattr(module, "write_github_output", fake_write_github_output)
+
+    await module.async_main()
+
+    assert outputs == {
+        "repository": repository,
+        "action": "add",
+        "ref": "v1.2.3",
+    }
+
+
+@pytest.mark.asyncio
 async def test_async_main_accepts_repository_rename(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
