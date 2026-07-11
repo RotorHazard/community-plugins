@@ -9,6 +9,7 @@ import sys
 
 from aiogithubapi import GitHubAPI, GitHubException
 from dotenv import load_dotenv
+from release_selection import select_used_ref
 
 load_dotenv()
 
@@ -84,18 +85,15 @@ async def check_releases(repository: str, token: str) -> None:
             LOGGER.error(f"No releases found for repository: {repository}")
             sys.exit(1)
 
-        # Sort releases by creation date (latest first)
-        sorted_releases = sorted(releases, key=lambda r: r.created_at, reverse=True)
-        latest_release = sorted_releases[0]
-        tag = getattr(latest_release, "tag_name", "")
-        LOGGER.info(f"🔍 Latest release tag: {tag}")
+        tag = select_used_ref(releases)
+        LOGGER.info(f"🔍 Selected release tag: {tag}")
 
-        # Check if the latest release tag follows SemVer
+        # Check if the selected release tag follows SemVer
         if not is_valid_semver(tag.removeprefix("v")):
-            LOGGER.error(f"The latest release tag '{tag}' does not follow SemVer.")
+            LOGGER.error(f"The selected release tag '{tag}' does not follow SemVer.")
             sys.exit(1)
         else:
-            LOGGER.info("✅ The latest release tag follows SemVer.")
+            LOGGER.info("✅ The selected release tag follows SemVer.")
 
 
 if __name__ == "__main__":

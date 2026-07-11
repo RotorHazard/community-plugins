@@ -47,6 +47,7 @@ jobs:
     outputs:
       repository: ${{ steps.out.outputs.repository }}
       action: ${{ steps.out.outputs.action }}
+      ref: ${{ steps.out.outputs.ref }}
     steps:
       # If relevant: do the full preflight
       - name: ⤵️ Check out code (PR merge commit)
@@ -62,7 +63,7 @@ jobs:
           git show origin/${{ github.event.pull_request.base.ref }}:plugins.json > plugins_old.json || echo "{}" > plugins_old.json
       - name: 🏗 Set up UV
         if: needs.changes.outputs.relevant == 'true'
-        uses: astral-sh/setup-uv@v8.3.1
+        uses: astral-sh/setup-uv@v8.3.2
         with:
           version: "latest"
           enable-cache: true
@@ -81,6 +82,7 @@ jobs:
         run: |
           echo "repository=${{ steps.check.outputs.repository }}" >> "$GITHUB_OUTPUT"
           echo "action=${{ steps.check.outputs.action }}" >> "$GITHUB_OUTPUT"
+          echo "ref=${{ steps.check.outputs.ref }}" >> "$GITHUB_OUTPUT"
 
   # 2) Categories: run only when relevant (action or repository set)
   categories:
@@ -92,7 +94,7 @@ jobs:
       - name: ⤵️ Check out code
         uses: actions/checkout@v7.0.0
       - name: 🏗 Set up UV
-        uses: astral-sh/setup-uv@v8.3.1
+        uses: astral-sh/setup-uv@v8.3.2
         with:
           version: "latest"
           enable-cache: true
@@ -123,7 +125,7 @@ jobs:
       - name: ⤵️ Check out code
         uses: actions/checkout@v7.0.0
       - name: 🏗 Set up UV
-        uses: astral-sh/setup-uv@v8.3.1
+        uses: astral-sh/setup-uv@v8.3.2
         with:
           version: "latest"
           enable-cache: true
@@ -144,7 +146,7 @@ jobs:
       - name: ⤵️ Check out code
         uses: actions/checkout@v7.0.0
       - name: 🏗 Set up UV
-        uses: astral-sh/setup-uv@v8.3.1
+        uses: astral-sh/setup-uv@v8.3.2
         with:
           version: "latest"
           enable-cache: true
@@ -168,10 +170,14 @@ jobs:
     needs: preflight
     if: ${{ needs.preflight.outputs.action == 'add' }}
     steps:
-      - name: ⤵️ Clone added plugin repository
-        run: git clone --depth 1 "https://github.com/${{ needs.preflight.outputs.repository }}" .
+      - name: ⤵️ Check out added plugin release
+        uses: actions/checkout@v7.0.0
+        with:
+          repository: ${{ needs.preflight.outputs.repository }}
+          ref: ${{ needs.preflight.outputs.ref }}
+          fetch-depth: 1
       - name: 🚀 Run RHFest Validation
-        uses: docker://ghcr.io/rotorhazard/rhfest-action:v3.0.1
+        uses: docker://ghcr.io/rotorhazard/rhfest-action:v3.1.0
 
   # 6) Aggregator: single required status
   checks:
