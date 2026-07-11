@@ -6,6 +6,8 @@ import logging
 import os
 import re
 import sys
+from pathlib import Path
+from typing import Any
 
 from aiogithubapi import GitHubAPI, GitHubException
 from dotenv import load_dotenv
@@ -61,6 +63,26 @@ def is_valid_semver(tag: str) -> bool:
     return bool(SEMVER_REGEX.match(tag))
 
 
+def select_used_ref(releases: list[Any]) -> str:
+    """Select the same release ref used by the metadata generator."""
+    sorted_releases = sorted(
+        releases, key=lambda release: release.created_at, reverse=True
+    )
+    latest_stable = next(
+        (release for release in sorted_releases if not release.prerelease), None
+    )
+    selected_release = latest_stable or sorted_releases[0]
+    return selected_release.tag_name
+
+
+def write_github_output(ref: str) -> None:
+    """Expose the selected release ref to downstream workflow jobs."""
+    github_output = os.getenv("GITHUB_OUTPUT")
+    if github_output:
+        with Path.open(github_output, "a", encoding="utf-8") as output_file:
+            print(f"ref={ref}", file=output_file)
+
+
 async def check_releases(repository: str, token: str) -> None:
     """Check if a GitHub repository has at least one release.
 
@@ -84,18 +106,16 @@ async def check_releases(repository: str, token: str) -> None:
             LOGGER.error(f"No releases found for repository: {repository}")
             sys.exit(1)
 
-        # Sort releases by creation date (latest first)
-        sorted_releases = sorted(releases, key=lambda r: r.created_at, reverse=True)
-        latest_release = sorted_releases[0]
-        tag = getattr(latest_release, "tag_name", "")
-        LOGGER.info(f"🔍 Latest release tag: {tag}")
+        tag = select_used_ref(releases)
+        LOGGER.info(f"🔍 Selected release tag: {tag}")
 
-        # Check if the latest release tag follows SemVer
+        # Check if the selected release tag follows SemVer
         if not is_valid_semver(tag.removeprefix("v")):
-            LOGGER.error(f"The latest release tag '{tag}' does not follow SemVer.")
+            LOGGER.error(f"The selected release tag '{tag}' does not follow SemVer.")
             sys.exit(1)
         else:
-            LOGGER.info("✅ The latest release tag follows SemVer.")
+            LOGGER.info("✅ The selected release tag follows SemVer.")
+            write_github_output(tag)
 
 
 if __name__ == "__main__":

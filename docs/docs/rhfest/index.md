@@ -8,7 +8,7 @@ hide:
 
 # RHFest Action
 
-**RHFest** is a GitHub Action that automatically validates RotorHazard plugins to ensure they follow official structure and formatting standards. It checks for required files, verifies the contents of the `manifest.json`, and confirms that version numbers are formatted correctly.
+**RHFest** is a GitHub Action that automatically validates RotorHazard plugins to ensure they follow official structure and formatting standards. It checks for required files, verifies the contents of the `manifest.json`, confirms that the plugin folder matches the manifest `domain`, and validates version number formatting.
 
 This helps plugin authors maintain consistent quality and catch problems before release. It is also a mandatory part if you want to add a plugin to the database.
 
