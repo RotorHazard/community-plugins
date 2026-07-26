@@ -32,6 +32,7 @@
   ],
   "OSD & VRx Control": [
     "i-am-grub/vrxc_elrs",
+    "izicubed/RotorHazard-ELRS-Web-Backpack",
     "RotorHazard/VRxC-ClearView2",
     "RotorHazard/VRxC-Fusion"
   ],
