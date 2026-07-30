@@ -16,7 +16,8 @@
   ],
   "Heat Generators": [
     "arnaudmorin/RotorHazard-Generator-FAI-like-8-pilots",
-    "Dutch-Drone-Racing/RH-Generator-8-Pilot-DE"
+    "Dutch-Drone-Racing/RH-Generator-8-Pilot-DE",
+    "DavidCalderon1/RH-Generator-Minimize-Repeats"
   ],
   "Class Rankings": [
     "arnaudmorin/RotorHazard-Class-Rank-Best-X-Laps-Cumulative",
