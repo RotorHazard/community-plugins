@@ -24,7 +24,8 @@
     "Aaronsss/cumulative-points-per-heat-RH-plugin",
     "HazardCreative/RotorHazard-Class-Rank-Best-X-Laps",
     "HazardCreative/RotorHazard-Class-Rank-Heat-Points",
-    "HazardCreative/RotorHazard-Class-Rank-Best-Percentage"
+    "HazardCreative/RotorHazard-Class-Rank-Best-Percentage",
+    "DavidCalderon1/RH-Points-Finish-Required"
   ],
   "Results Analysis": [
     "izicubed/RotorHazard-Auto-Marshalling",
