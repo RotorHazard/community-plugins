@@ -52,10 +52,26 @@ jobs:
         uses: actions/checkout@v4.2.2
 
       - name: 🚀 Run RHFest validation
-        uses: docker://ghcr.io/rotorhazard/rhfest-action:latest
+        uses: RotorHazard/rhfest-action@v3
 ```
 
 This configuration runs RHFest automatically on pushes to `main`, on pull requests, and once per day. You can modify the triggers in the `on:` section to fit your preferred workflow.
+
+## Pre-commit
+
+RHFest is also available as an official Docker-based pre-commit hook. Pin the hook to an exact release so every contributor runs the same RHFest version:
+
+```yaml
+repos:
+  - repo: https://github.com/RotorHazard/rhfest-action
+    rev: v3.2.1
+    hooks:
+      - id: rhfest
+        name: 🎉 Check RHFest
+        stages: [pre-commit, pre-push, manual]
+```
+
+Docker must be available when the hook runs. Pre-commit builds RHFest from the selected release and caches the resulting image for later checks.
 
 ## Results and reporting
 
