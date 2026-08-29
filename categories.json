@@ -27,7 +27,7 @@
     "HazardCreative/RotorHazard-Class-Rank-Best-Percentage"
   ],
   "Results Analysis": [
-    "izicubed/RotorHazard-Claude-Marshal",
+    "izicubed/RotorHazard-Auto-Marshalling",
     "jrwrodgers/event_plots"
   ],
   "OSD & VRx Control": [
@@ -52,6 +52,7 @@
     "Dutch-Drone-Racing/RH-Plugin-EventAction-UDP-Message",
     "HazardCreative/RotorHazard-Idle-Race_Handler",
     "i-am-grub/netpack-installer",
+    "izicubed/RotorHazard-Gate-Calibration",
     "izicubed/RotorHazard-Sensor-Top-Bar",
     "izicubed/RotorHazard-Sound-FX",
     "PSi86/RaceLink_RH_Plugin",

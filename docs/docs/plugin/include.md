@@ -64,7 +64,7 @@ Check whether the plugin repository is on the list of previously removed plugins
 
 ### RHFest validation
 
-Check that the selected release has a valid `manifest.json` and repository structure. More details can be found on the dedicated [RHFest](../rhfest/index.md) page.
+Check that the selected release has a valid repository structure, `manifest.json`, Python syntax, and `initialize(rhapi)` entry point, and does not access private RHAPI internals. More details can be found on the dedicated [RHFest](../rhfest/index.md) page.
 
 ### Lint [jq]
 

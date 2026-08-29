@@ -73,15 +73,21 @@ In your plugin directory, you must have a `manifest.json` file that contains at 
 | `documentation_uri`      | string    | No       | URL to the documentation                                               |
 | `dependencies`           | list[str] | No       | List of additional PyPI dependencies required for this plugin          |
 | `zip_filename`           | string    | No       | The filename of the ZIP file containing the plugin code (e.g., `plugin.zip`) |
+| `author`                 | string    | No       | Name of the plugin author                                              |
+| `author_uri`             | string    | No       | URL to the plugin author's profile or website                          |
+| `info_uri`               | string    | No       | URL to additional information about the plugin                         |
 | `license`                | string    | No       | License under which the plugin is distributed (e.g., `MIT`, `GPL-3.0`) |
 | `license_uri`            | string    | No       | URL to the license file                                                |
 
 
 !!! note "Validation examples for specific fields"
 
-    - **`domain`** must be a unique identifier for the plugin, using only lowercase letters, numbers, and underscores.
+    - **`domain`** must be a unique identifier for the plugin, using only lowercase letters, numbers, and underscores. It must not start or end with an underscore, contain consecutive underscores, or contain hyphens, and it must exactly match the plugin directory name.
         - ✅ Example: `myplugin`, `my_plugin`
-        - ❌ Invalid: `MyPlugin`, `my-plugin`, `my_plugin!`
+        - ❌ Invalid: `MyPlugin`, `my-plugin`, `my plugin`, `_my_plugin`, `my__plugin`
+    - **`required_rhapi_version`** must use `major.minor` format.
+        - ✅ Example: `1.0`
+        - ❌ Invalid: `1`, `1.0.0`
     - **`version`** must follow [Semantic Versioning (SemVer)](https://semver.org/), including:
         - **Basic format:** `major.minor.patch`
             - ✅ Example: `1.2.3`
