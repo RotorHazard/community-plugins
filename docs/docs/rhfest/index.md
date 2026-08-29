@@ -77,7 +77,7 @@ RHFest groups its stable rule codes into repository structure (`STR`), manifest 
 
 ## Pre-commit
 
-RHFest is also available as an official Docker-based pre-commit hook. Pin the hook to an exact release so every contributor runs the same RHFest version:
+RHFest is also available as an official Docker-based pre-commit hook. The example pins a complete release so every contributor runs the same RHFest version:
 
 ```yaml
 repos:
@@ -89,21 +89,21 @@ repos:
         stages: [pre-commit, pre-push, manual]
 ```
 
-Docker must be available when the hook runs. Pre-commit builds RHFest from the selected release and caches the resulting image for later checks.
+Docker must be available when the hook runs. Pre-commit builds RHFest from the selected release and caches the resulting image for later checks. Run `pre-commit autoupdate` periodically to update the configuration to the latest published RHFest tag while keeping the selected version explicit and reproducible.
 
 ## Run locally with Docker
 
 You can run the same validation manually from the root of a plugin repository:
 
 ```bash
-docker run --rm -v "$(pwd):/repo" ghcr.io/rotorhazard/rhfest-action:v3.2.2
+docker run --rm -v "$(pwd):/repo" ghcr.io/rotorhazard/rhfest-action:v3
 ```
 
 Selection flags are also available when running the container directly:
 
 ```bash
 docker run --rm -v "$(pwd):/repo" \
-  ghcr.io/rotorhazard/rhfest-action:v3.2.2 \
+  ghcr.io/rotorhazard/rhfest-action:v3 \
   --select STR,MAN,RH002 --ignore MAN002
 ```
 
