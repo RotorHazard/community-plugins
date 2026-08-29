@@ -21,7 +21,7 @@ Common issues:
 
 - **Folder structure:** Ensure your plugin is in `custom_plugins/DOMAIN/`
 - **Manifest keys:** All required fields must be present
-- **Domain format:** Use only lowercase letters, numbers, underscores, and hyphens, and match the plugin directory name
+- **Domain format:** Use only lowercase letters, numbers, and underscores; avoid leading, trailing, or consecutive underscores; and match the plugin directory name
 - **Version format:** Must follow semantic versioning
 - **RHAPI version format:** Use `major.minor`, for example `1.0`
 - **Plugin entry point:** Provide exactly one top-level `initialize(rhapi)` function in `__init__.py`

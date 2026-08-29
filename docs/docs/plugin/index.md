@@ -82,9 +82,9 @@ In your plugin directory, you must have a `manifest.json` file that contains at 
 
 !!! note "Validation examples for specific fields"
 
-    - **`domain`** must be a unique identifier for the plugin, using only lowercase letters, numbers, underscores, and hyphens. It must exactly match the plugin directory name.
-        - ✅ Example: `myplugin`, `my_plugin`, `my-plugin`
-        - ❌ Invalid: `MyPlugin`, `my plugin`, `my_plugin!`
+    - **`domain`** must be a unique identifier for the plugin, using only lowercase letters, numbers, and underscores. It must not start or end with an underscore, contain consecutive underscores, or contain hyphens, and it must exactly match the plugin directory name.
+        - ✅ Example: `myplugin`, `my_plugin`
+        - ❌ Invalid: `MyPlugin`, `my-plugin`, `my plugin`, `_my_plugin`, `my__plugin`
     - **`required_rhapi_version`** must use `major.minor` format.
         - ✅ Example: `1.0`
         - ❌ Invalid: `1`, `1.0.0`

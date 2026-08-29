@@ -70,7 +70,7 @@ Edit `manifest.json` with your plugin details:
 ```
 
 !!! important "Domain naming"
-    The `domain` field must match your directory name exactly and use only lowercase letters, numbers, underscores, and hyphens.
+    The `domain` field must match your directory name exactly and use only lowercase letters, numbers, and underscores. Do not use hyphens, leading or trailing underscores, or consecutive underscores.
 
 ## Step 5: Create the Plugin Code
 
