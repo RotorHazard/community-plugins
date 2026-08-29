@@ -82,7 +82,7 @@ RHFest is also available as an official Docker-based pre-commit hook. Pin the ho
 ```yaml
 repos:
   - repo: https://github.com/RotorHazard/rhfest-action
-    rev: v3.2.1
+    rev: v3.2.2
     hooks:
       - id: rhfest
         name: 🎉 Check RHFest
@@ -96,14 +96,14 @@ Docker must be available when the hook runs. Pre-commit builds RHFest from the s
 You can run the same validation manually from the root of a plugin repository:
 
 ```bash
-docker run --rm -v "$(pwd):/repo" ghcr.io/rotorhazard/rhfest-action:v3.2.1
+docker run --rm -v "$(pwd):/repo" ghcr.io/rotorhazard/rhfest-action:v3.2.2
 ```
 
 Selection flags are also available when running the container directly:
 
 ```bash
 docker run --rm -v "$(pwd):/repo" \
-  ghcr.io/rotorhazard/rhfest-action:v3.2.1 \
+  ghcr.io/rotorhazard/rhfest-action:v3.2.2 \
   --select STR,MAN,RH002 --ignore MAN002
 ```
 
