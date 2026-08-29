@@ -8,13 +8,13 @@ hide:
 
 # RHFest Action
 
-**RHFest** is a GitHub Action that automatically validates RotorHazard plugins to ensure they follow official structure and formatting standards. It checks for required files, verifies the contents of the `manifest.json`, confirms that the plugin folder matches the manifest `domain`, and validates version number formatting.
+**RHFest** validates RotorHazard plugin repositories against the official structure, manifest, and Python entry-point requirements. It checks the repository layout, validates every supported `manifest.json` field, confirms that the plugin folder matches the manifest `domain`, parses the plugin source, validates `initialize(rhapi)`, and detects access to private RHAPI internals.
 
 This helps plugin authors maintain consistent quality and catch problems before release. It is also a mandatory part if you want to add a plugin to the database.
 
 ## How it works
 
-Once configured, RHFest runs automatically whenever code is pushed or a pull request is opened. It analyzes your repository, performs all validation checks, and reports the results directly in the GitHub Actions logs. If something is missing or invalid, the workflow will fail with clear feedback so issues can be fixed right away.
+Once configured, RHFest runs automatically whenever code is pushed or a pull request is opened. It reports stable rule codes, source locations, and help text directly in the GitHub Actions logs. Errors fail the workflow; warnings remain visible without failing validation.
 
 ## Benefits
 
@@ -23,6 +23,8 @@ Using RHFest ensures your plugin remains compliant with RotorHazard requirements
 - Detects issues automatically during development
 - Validates pull requests and main branch updates
 - Can run on a daily schedule to verify ongoing compliance
+- Can run locally through pre-commit or Docker
+- Reports stable rule codes that can be selected or suppressed explicitly
 - Reduces manual review effort and improves consistency
 
 ## Installation
@@ -47,15 +49,31 @@ jobs:
   validation:
     name: Validation
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: ⤵️ Check out code from GitHub
-        uses: actions/checkout@v4.2.2
+        uses: actions/checkout@v7.0.1
 
       - name: 🚀 Run RHFest validation
         uses: RotorHazard/rhfest-action@v3
 ```
 
 This configuration runs RHFest automatically on pushes to `main`, on pull requests, and once per day. You can modify the triggers in the `on:` section to fit your preferred workflow.
+
+### Selecting or ignoring rules
+
+RHFest groups its stable rule codes into repository structure (`STR`), manifest (`MAN`), and RotorHazard Python source (`RH`) families. Use Action inputs to adopt a family incrementally or suppress a deliberate exception:
+
+```yaml
+      - name: 🚀 Run selected RHFest validation
+        uses: RotorHazard/rhfest-action@v3
+        with:
+          select: "STR,MAN,RH002"
+          ignore: "MAN002"
+```
+
+`ignore` is applied after `select` and therefore takes precedence. Unknown or partial rule codes are configuration errors. See the [RHFest rule catalog](https://github.com/RotorHazard/rhfest-action/blob/main/docs/rules.md) for the complete list and remediation guidance.
 
 ## Pre-commit
 
@@ -73,10 +91,25 @@ repos:
 
 Docker must be available when the hook runs. Pre-commit builds RHFest from the selected release and caches the resulting image for later checks.
 
+## Run locally with Docker
+
+You can run the same validation manually from the root of a plugin repository:
+
+```bash
+docker run --rm -v "$(pwd):/repo" ghcr.io/rotorhazard/rhfest-action:v3.2.1
+```
+
+Selection flags are also available when running the container directly:
+
+```bash
+docker run --rm -v "$(pwd):/repo" \
+  ghcr.io/rotorhazard/rhfest-action:v3.2.1 \
+  --select STR,MAN,RH002 --ignore MAN002
+```
+
 ## Results and reporting
 
-When the workflow completes, you can view the results in the Actions tab of your repository.
-A green checkmark means validation succeeded. If validation fails, the logs will include clear error messages with guidance on how to fix each issue.
+When the workflow completes, you can view the results in the Actions tab of your repository. A green checkmark means validation succeeded. If validation fails, the annotations and logs identify the rule code, affected file and source location, and provide guidance when an automatic fix is not possible.
 
 You can add a validation status badge to your README:
 

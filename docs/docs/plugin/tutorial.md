@@ -60,7 +60,7 @@ Edit `manifest.json` with your plugin details:
   "name": "Race Counter",
   "description": "Displays the total number of races completed",
   "version": "1.0.0",
-  "required_rhapi_version": "1.0.0",
+  "required_rhapi_version": "1.0",
   "author": "Your Name",
   "author_uri": "https://github.com/YOUR_USERNAME",
   "documentation_uri": "https://github.com/YOUR_USERNAME/rh-race-counter",
@@ -70,7 +70,7 @@ Edit `manifest.json` with your plugin details:
 ```
 
 !!! important "Domain naming"
-    The `domain` field must match your directory name exactly and use only lowercase letters, numbers, and underscores.
+    The `domain` field must match your directory name exactly and use only lowercase letters, numbers, underscores, and hyphens.
 
 ## Step 5: Create the Plugin Code
 
@@ -234,7 +234,7 @@ Creates a panel in the RotorHazard interface where your plugin's UI elements wil
 
 ## Step 8: Verify RHFest Validation
 
-The template repository already includes RHFest validation in `.github/workflows/rhfest.yml`. This automatically validates your plugin structure and manifest.
+The template repository already includes RHFest validation in `.github/workflows/rhfest.yaml`. This automatically validates your plugin structure, manifest, Python syntax, and `initialize(rhapi)` entry point.
 
 After you push your changes to GitHub, check that the validation passes:
 
@@ -243,7 +243,7 @@ After you push your changes to GitHub, check that the validation passes:
 3. You should see the RHFest workflow running
 4. Wait for it to complete and verify it shows a green checkmark
 
-If the validation fails, check the error messages and fix any issues with your `manifest.json` or plugin structure.
+If validation fails, use the reported rule code, source location, and help text to fix the plugin structure, manifest, or Python entry point.
 
 ## Step 9: Create Your First Release
 
