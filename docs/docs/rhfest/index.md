@@ -56,10 +56,10 @@ jobs:
         uses: actions/checkout@v7.0.1
 
       - name: 🚀 Run RHFest validation
-        uses: RotorHazard/rhfest-action@v3
+        uses: RotorHazard/rhfest-action@v3.2.2
 ```
 
-This configuration runs RHFest automatically on pushes to `main`, on pull requests, and once per day. You can modify the triggers in the `on:` section to fit your preferred workflow.
+This configuration runs RHFest automatically on pushes to `main`, on pull requests, and once per day. The complete release tag keeps validation reproducible. Update it deliberately when a newer RHFest release is available, for example through Renovate.
 
 ### Selecting or ignoring rules
 
@@ -67,7 +67,7 @@ RHFest groups its stable rule codes into repository structure (`STR`), manifest 
 
 ```yaml
       - name: 🚀 Run selected RHFest validation
-        uses: RotorHazard/rhfest-action@v3
+        uses: RotorHazard/rhfest-action@v3.2.2
         with:
           select: "STR,MAN,RH002"
           ignore: "MAN002"
@@ -96,14 +96,14 @@ Docker must be available when the hook runs. Pre-commit builds RHFest from the s
 You can run the same validation manually from the root of a plugin repository:
 
 ```bash
-docker run --rm -v "$(pwd):/repo" ghcr.io/rotorhazard/rhfest-action:v3
+docker run --rm -v "$(pwd):/repo" ghcr.io/rotorhazard/rhfest-action:v3.2.2
 ```
 
 Selection flags are also available when running the container directly:
 
 ```bash
 docker run --rm -v "$(pwd):/repo" \
-  ghcr.io/rotorhazard/rhfest-action:v3 \
+  ghcr.io/rotorhazard/rhfest-action:v3.2.2 \
   --select STR,MAN,RH002 --ignore MAN002
 ```
 
