@@ -177,7 +177,7 @@ jobs:
           ref: ${{ needs.preflight.outputs.ref }}
           fetch-depth: 1
       - name: 🚀 Run RHFest Validation
-        uses: docker://ghcr.io/rotorhazard/rhfest-action:v3.1.0
+        uses: docker://ghcr.io/rotorhazard/rhfest-action:v3.2.2
 
   # 6) Aggregator: single required status
   checks:

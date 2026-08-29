@@ -21,10 +21,13 @@ Common issues:
 
 - **Folder structure:** Ensure your plugin is in `custom_plugins/DOMAIN/`
 - **Manifest keys:** All required fields must be present
-- **Domain format:** Use only lowercase letters, numbers, and underscores
+- **Domain format:** Use only lowercase letters, numbers, and underscores; avoid leading, trailing, or consecutive underscores; and match the plugin directory name
 - **Version format:** Must follow semantic versioning
+- **RHAPI version format:** Use `major.minor`, for example `1.0`
+- **Plugin entry point:** Provide exactly one top-level `initialize(rhapi)` function in `__init__.py`
+- **Private API access:** Replace access to `_racecontext` through `rhapi` or one of its namespaces with public RHAPI methods
 
-Check the [RHFest Action](../docs/rhfest/index.md) documentation for details.
+Use the rule code and help text from the validation output, then check the [RHFest Action](../docs/rhfest/index.md) documentation for details.
 
 ## My plugin causes RotorHazard to crash
 
