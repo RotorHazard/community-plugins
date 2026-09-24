@@ -60,3 +60,9 @@
     "RotorHazard/LapRF-Interface"
   ],
   "Other": [
+    "Dutch-Drone-Racing/RH-Dropgate",
+    "HazardCreative/RotorHazard-Silly-Names",
+    "jrwrodgers/pilot_palette",
+    "MarijnKoesen/rh_race_round_announcer"
+  ]
+}
