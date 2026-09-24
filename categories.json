@@ -11,6 +11,7 @@
   "Data Import & Export": [
     "L1cardo/RH-Pilot-Local-Importer",
     "L1cardo/RH-Last-Race-Exporter",
+    "LeoFengFPV/RH-All-Results-Exporter",
     "L1cardo/RH-Pilot-CSV-Importer",
     "vikibaarathi/rh-google-connector"
   ],
