@@ -20,7 +20,7 @@ dev = [
   "pytest-asyncio==1.4.0",
   "pytest-cov==7.1.0",
   "pytest-freezer==0.4.9",
-  "ruff==0.15.22",
+  "ruff==0.16.10",
   "syrupy==6.1.1",
 ]
 docs = [
@@ -67,6 +67,7 @@ lint.ignore = [
   "COM812",
 
   # Custom ignores
+  "CPY001",  # Copyright headers are not required for this repository
   "G004",    # Allow logging with f-strings
 ]
 
