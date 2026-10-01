@@ -6,11 +6,28 @@
   "dependencyDashboard": true,
   "labels": ["dependencies"],
   "ignoreDeps": ["awscli"],
+  "pre-commit": {
+    "enabled": true
+  },
   "lockFileMaintenance": {
     "enabled": true,
     "automerge": true
   },
   "commitMessagePrefix": "⬆️",
+  "customManagers": [
+    {
+      "customType": "regex",
+      "managerFilePatterns": ["/^docs\\/docs\\/rhfest\\/index\\.md$/"],
+      "matchStrings": [
+        "RotorHazard/rhfest-action@(?<currentValue>v\\d+\\.\\d+\\.\\d+)",
+        "rev: (?<currentValue>v\\d+\\.\\d+\\.\\d+)",
+        "ghcr\\.io/rotorhazard/rhfest-action:(?<currentValue>v\\d+\\.\\d+\\.\\d+)"
+      ],
+      "depNameTemplate": "RotorHazard/rhfest-action",
+      "datasourceTemplate": "github-releases",
+      "versioningTemplate": "semver-coerced"
+    }
+  ],
   "packageRules": [
     {
       "matchManagers": ["pep621"],
