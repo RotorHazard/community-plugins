@@ -6,7 +6,8 @@
     "vikibaarathi/rh-velocidrone",
     "vikibaarathi/RHCloudlink-plugin",
     "gvotteler/next-rotorhazard-plugin",
-    "arulrajesh/RH-Pilot-Queue"
+    "arulrajesh/RH-Pilot-Queue",
+    "TuxRich/mcs_upload"
   ],
   "Data Import & Export": [
     "L1cardo/RH-Pilot-Local-Importer",

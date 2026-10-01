@@ -42,6 +42,7 @@
   "RotorHazard/LapRF-Interface",
   "RotorHazard/VRxC-ClearView2",
   "RotorHazard/VRxC-Fusion",
+  "TuxRich/mcs_upload",
   "vikibaarathi/rh-google-connector",
   "vikibaarathi/rh-velocidrone",
   "vikibaarathi/RHCloudlink-plugin"
