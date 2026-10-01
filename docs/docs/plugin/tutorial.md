@@ -170,7 +170,7 @@ Store persistent data that survives restarts.
 ### UI Elements
 
 ```python
-rhapi.ui.register_panel('race_counter', 'Race Counter', 'stats')
+rhapi.ui.register_panel("race_counter", "Race Counter", "stats")
 ```
 
 Creates a panel in the RotorHazard interface where your plugin's UI elements will appear.
