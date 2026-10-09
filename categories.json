@@ -57,6 +57,7 @@
     "i-am-grub/netpack-installer",
     "izicubed/RotorHazard-Gate-Calibration",
     "izicubed/RotorHazard-Sensor-Top-Bar",
+    "LouisHitchcock/fpvgate-rh-plugin",
     "PSi86/RaceLink_RH_Plugin",
     "RotorHazard/LapRF-Interface"
   ],
