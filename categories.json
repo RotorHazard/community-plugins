@@ -59,7 +59,8 @@
     "izicubed/RotorHazard-Sensor-Top-Bar",
     "LouisHitchcock/fpvgate-rh-plugin",
     "PSi86/RaceLink_RH_Plugin",
-    "RotorHazard/LapRF-Interface"
+    "RotorHazard/LapRF-Interface",
+    "bob9/rotorhazard-webapp"
   ],
   "Other": [
     "Dutch-Drone-Racing/RH-Dropgate",
