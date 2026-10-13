@@ -62,6 +62,7 @@
     "RotorHazard/LapRF-Interface"
   ],
   "Other": [
+    "bob9/rotorhazard-webapp",
     "Dutch-Drone-Racing/RH-Dropgate",
     "HazardCreative/RotorHazard-Silly-Names",
     "jrwrodgers/pilot_palette",
