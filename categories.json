@@ -51,6 +51,7 @@
   "Utilities": [
     "Aaronsss/RH-sensor-monitor",
     "Aaronsss/RH-Settings-Restore",
+    "bob9/rotorhazard-webapp",
     "Christoph-Hofmann/oled_rotorhazard_display",
     "Dutch-Drone-Racing/RH-Plugin-EventAction-UDP-Message",
     "HazardCreative/RotorHazard-Idle-Race_Handler",
@@ -59,8 +60,7 @@
     "izicubed/RotorHazard-Sensor-Top-Bar",
     "LouisHitchcock/fpvgate-rh-plugin",
     "PSi86/RaceLink_RH_Plugin",
-    "RotorHazard/LapRF-Interface",
-    "bob9/rotorhazard-webapp"
+    "RotorHazard/LapRF-Interface"
   ],
   "Other": [
     "Dutch-Drone-Racing/RH-Dropgate",
